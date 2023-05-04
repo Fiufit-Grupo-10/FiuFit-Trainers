@@ -1,0 +1,43 @@
+version: "3.8"
+
+networks:
+  fiufit_network:
+    driver: bridge
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8090:80
+    volumes:
+      - ./:/app
+    environment:
+      - DATABASE_URL=postgresql://fiufit:fiufitpass@db/fiufit_users_dev
+    depends_on:
+      - db
+    networks:
+      - fiufit_network
+
+  db:
+    image: postgres:15.2-bullseye
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./insert_tt.sql:/docker-entrypoint-initdb.d/insert_tt.sql
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=fiufit
+      - POSTGRES_PASSWORD=fiufitpass
+      - POSTGRES_DB=fiufit_users_dev
+    networks:
+      - fiufit_network
+
+volumes:
+  postgres_data:
+
+
+    
+
+ 
