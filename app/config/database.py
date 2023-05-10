@@ -1,17 +1,11 @@
 import os
 
-from sqlalchemy import create_engine, MetaData
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
+import motor.motor_asyncio
 
-# from sqlalchemy.schema import CreateSchema
+MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
-# engine.execute(CreateSchema('users'))
-metadata = MetaData(schema="users")
+client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL)
+database = client.trainers
 
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()

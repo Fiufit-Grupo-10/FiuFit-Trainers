@@ -14,4 +14,7 @@ RUN poetry config virtualenvs.create false
 
 RUN poetry install
 
+ARG MONGO_URL
+ENV MONGO_URL $MONGO_URL
+
 CMD ["uvicorn", "app.main:app", "--host=0.0.0.0", "--port=80"]
