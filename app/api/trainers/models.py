@@ -52,7 +52,7 @@ class TrainingPlan(BaseModel):
     )
     goals: list[str] = Field(...)
     duration: int = Field(...)
-    reviews: list[Review] | None = Field(default=None)
+#    reviews: list[Review] | None = Field(default=None)
 
     class Config:
         allow_population_by_field_name = True
@@ -66,7 +66,7 @@ class TrainingPlan(BaseModel):
                 "media": ["link-to-image", "link-to-video"],
                 "goals": ["plank: one minute"],
                 "duration": 90,
-                "reviews": None,
+ #               "reviews": None,
             }
         }
 
@@ -83,14 +83,17 @@ class UpdateTrainingPlan(BaseModel):
         description="Multimedia resources (urls) associated with the training plan",
     )
     goals: list[str] | None = None
-
+    duration: int | None = Field(default=None)
+#    reviews: list[Review] | None = Field(default=None)
     class Config:
         schema_extra = {
             "example": {
                 "title": "Sample training plan",
                 "description": "Training plan description",
-                "difficulty": "beginner",
+                "difficulty": "hard",
+                "training_types": ["cardio"],
                 "media": ["link-to-image", "link-to-video"],
                 "goals": ["plank: one minute"],
+                "duration": 30
             }
         }
