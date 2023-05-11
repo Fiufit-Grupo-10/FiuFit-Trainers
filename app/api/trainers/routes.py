@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Body, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND
-from config.database import COLLECTION_NAME
+from app.config.database import COLLECTION_NAME
 from app.api.trainers.models import TrainingPlan, UpdateTrainingPlan
-from uuid import UUID
 
 router = APIRouter(tags=["plans"])
 
@@ -20,8 +19,8 @@ async def create_training_plan(plan: TrainingPlan, request: Request):
 
 
 # TODO: Does it make sense to make it idempotent
-@router.put("/plans/{id}")
-async def modify_training_plan(id: UUID, plan: UpdateTrainingPlan, request: Request):
+@router.put("/plans/{id}", response_model=TrainingPlan)
+async def modify_training_plan(id: str, plan: UpdateTrainingPlan, request: Request):
     updated_plan = {k: v for k, v in plan.dict().items() if v is not None}
 
     if len(updated_plan) > 0:
@@ -43,3 +42,14 @@ async def modify_training_plan(id: UUID, plan: UpdateTrainingPlan, request: Requ
     raise HTTPException(
         status_code=HTTP_404_NOT_FOUND, detail=f"Training plan {id} not found"
     )
+
+
+@router.get("/plans/{trainer_id}", response_model=list[TrainingPlan])
+async def get_training_plans(trainer_id: str, request: Request):
+    # May break if this is bigger than buffer
+    return [
+        plan
+        async for plan in request.app.mongodb[COLLECTION_NAME].find(
+            {"trainer": trainer_id}
+        )
+    ]
