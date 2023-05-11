@@ -1,7 +1,6 @@
 from enum import Enum
-from bson import ObjectId
 from pydantic import BaseModel, Field, PyObject
-import uuid 
+from uuid import uuid4, UUID
 
 
 # class PyObjectId(ObjectId):
@@ -30,17 +29,37 @@ class Difficulty(str, Enum):
     intermediate = "intermediate"
     advanced = "advanced"
 
-
     
 class TrainingPlan(BaseModel):
-    id: str = Field(default_factory=uuid.uuid4, alias="_id")
+    id: UUID = Field(default_factory=uuid4, alias="_id")
+    creator: UUID = Field(...) #User uuid
     title: str = Field(..., min_length=MIN_TITLE_LENGTH, max_length=MAX_TITLE_LENGTH)
     description: str | None = Field(default=None, max_length=MAX_DESCRIPTION_LENGTH)
     difficulty: Difficulty 
     training_types: list[str] = Field(...)
     media: list[str] | None = Field(default=None, description="Multimedia resources (urls) associated with the training plan")
     # Goals => ejercicios + tiempo + mas descanso
-    goals: list[str] 
-    
+    goals: list[str]
+    class Config:
+        allow_population_by_field_name = True
+        schema_extra = {
+            "example":
+            {
+            "id": "00010203-0405-0607-0809-0a0b0c0d0e0f",
+            "creator": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
+            "title": "Sample training plan",
+            "description": "Training plan description",
+            "difficulty": "beginner",
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"]
+        }
+    }
     
 
+class UpdateTrainingPlan(BaseModel):
+    title: str | None = Field(default=None,min_length=MIN_TITLE_LENGTH, max_length=MAX_TITLE_LENGTH) 
+    description: str | None = Field(default=None, max_length=MAX_DESCRIPTION_LENGTH)
+    difficulty: Difficulty | None
+    training_types: list[str] | None = Field(default=None)
+    media: list[str] | None = Field(default=None, description="Multimedia resources (urls) associated with the training plan")
+    goals: list[str] | None = None
