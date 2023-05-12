@@ -1,10 +1,11 @@
 name: Docker Hub Upload Workflow
-
 on:
-  workflow_dispatch:
+  workflow_run:
+    workflows: [Python CI]
+    types: [completed]
 
 jobs:
-  Docker-Hub-Deploy:
+  on-success:
     runs-on: ubuntu-latest
 
     steps:
