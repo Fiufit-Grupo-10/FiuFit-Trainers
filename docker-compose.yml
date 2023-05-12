@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  trainers:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8090:80
+    volumes:
+      - ./:/app
+    environment:
+      - MONGO_URL=${MONGO_URL}
