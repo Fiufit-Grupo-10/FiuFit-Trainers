@@ -6,6 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 app = FastAPI()
 
+
 @app.on_event("startup")
 async def startup_db_client():
     app.mongodb_client = AsyncIOMotorClient(MONGO_URL)
@@ -16,5 +17,5 @@ async def startup_db_client():
 async def shutdown_db_client():
     app.mongodb_client.close()
 
-app.include_router(trainers_routes.router)
 
+app.include_router(trainers_routes.router)
