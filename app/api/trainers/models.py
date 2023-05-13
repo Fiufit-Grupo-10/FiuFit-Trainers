@@ -1,22 +1,6 @@
 from enum import Enum
-from pydantic import BaseModel, Field, PyObject
+from pydantic import BaseModel, Field
 from uuid import uuid4
-
-# class PyObjectId(ObjectId):
-#     @classmethod
-#     def __get_validators__(cls):
-#         yield cls.validate
-
-#     @classmethod
-#     def validate(cls, v):
-#         if not ObjectId.is_valid(v):
-#             raise ValueError("Invalid objectid")
-#         return ObjectId(v)
-
-#     @classmethod
-#     def __modify_schema__(cls, field_schema):
-#         field_schema.update(type="string")
-
 
 MAX_TITLE_LENGTH = 200
 MIN_TITLE_LENGTH = 3
@@ -33,10 +17,22 @@ REVIEW_MAX_LENGTH = 240
 
 
 class Review(BaseModel):
-    uid: str
-    username: str
+    id: str = Field(default_factory=uuid4, alias="_id")
+    plan_id: str = Field(...)
+    user_id: str = Field(...)
     review: str | None = Field(default=None, max_length=REVIEW_MAX_LENGTH)
     score: int = Field(..., gt=0, le=5)
+
+    class Config:
+        allow_population_by_field_name = True
+        schema_extra = {
+            "example": {
+                "plan_id": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
+                "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+                "review": "Some review",
+                "score": 4,
+            }
+        }
 
 
 class TrainingPlan(BaseModel):
@@ -52,7 +48,6 @@ class TrainingPlan(BaseModel):
     )
     goals: list[str] = Field(...)
     duration: int = Field(...)
-    #    reviews: list[Review] | None = Field(default=None)
 
     class Config:
         allow_population_by_field_name = True
@@ -66,7 +61,7 @@ class TrainingPlan(BaseModel):
                 "media": ["link-to-image", "link-to-video"],
                 "goals": ["plank: one minute"],
                 "duration": 90,
-                #               "reviews": None,
+                "reviews": None,
             }
         }
 
@@ -85,7 +80,6 @@ class UpdateTrainingPlan(BaseModel):
     goals: list[str] | None = None
     duration: int | None = Field(default=None)
 
-    #    reviews: list[Review] | None = Field(default=None)
     class Config:
         schema_extra = {
             "example": {
@@ -96,5 +90,31 @@ class UpdateTrainingPlan(BaseModel):
                 "media": ["link-to-image", "link-to-video"],
                 "goals": ["plank: one minute"],
                 "duration": 30,
+            }
+        }
+
+
+class ReviewResponse(BaseModel):
+    reviews: list[Review]
+    mean: float
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "reviews": [
+                    {
+                        "plan_id": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
+                        "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+                        "review": "Some review",
+                        "score": 4,
+                    },
+                    {
+                        "plan_id": "c59710ef-f5d0-41bc-a787-ad8eb739ef4d",
+                        "user_id": "9ca0fa95-a847-40b4-8e39-2fae5ee2667a",
+                        "review": "Another review",
+                        "score": 3,
+                    },
+                ],
+                "mean": 4.5,
             }
         }
