@@ -3,7 +3,8 @@ import os
 # import motor.motor_asyncio
 
 MONGO_URL = os.getenv("MONGO_URL", "")
-COLLECTION_NAME = "trainings"
+TRAININGS_COLLECTION_NAME = "trainings"
+REVIEWS_COLLECTION_NAME = "reviews"
 DB_NAME = "trainers_test"
 
 
