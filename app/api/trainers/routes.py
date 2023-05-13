@@ -3,7 +3,12 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND
 from app.config.database import TRAININGS_COLLECTION_NAME, REVIEWS_COLLECTION_NAME
-from app.api.trainers.models import Review, ReviewResponse, TrainingPlan, UpdateTrainingPlan
+from app.api.trainers.models import (
+    Review,
+    ReviewResponse,
+    TrainingPlan,
+    UpdateTrainingPlan,
+)
 import statistics
 
 router = APIRouter(tags=["plans"])
@@ -20,7 +25,9 @@ async def create_training_plan(plan: TrainingPlan, request: Request):
 
 
 @router.put("/plans/{plan_id}", response_model=TrainingPlan)
-async def modify_training_plan(plan_id: str, plan: UpdateTrainingPlan, request: Request):
+async def modify_training_plan(
+    plan_id: str, plan: UpdateTrainingPlan, request: Request
+):
     updated_plan = {k: v for k, v in plan.dict().items() if v is not None}
 
     if len(updated_plan) > 0:
@@ -29,13 +36,15 @@ async def modify_training_plan(plan_id: str, plan: UpdateTrainingPlan, request: 
         )
 
         if result.modified_count == 1:
-            updated_plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one(
-                {"_id": plan_id}
-            )
+            updated_plan = await request.app.mongodb[
+                TRAININGS_COLLECTION_NAME
+            ].find_one({"_id": plan_id})
             if updated_plan is not None:
                 return updated_plan
 
-    current_plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": plan_id})
+    current_plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one(
+        {"_id": plan_id}
+    )
     if current_plan is not None:
         return current_plan
 
@@ -53,7 +62,6 @@ async def get_trainer_training_plans(trainer_id: str, request: Request):
             {"trainer": trainer_id}
         )
     ]
-
 
 
 @router.get("/plans")
@@ -88,7 +96,7 @@ async def create_review(review: Review, request: Request):
 @router.get("/reviews/{plan_id}", response_model=list[ReviewResponse])
 async def get_training_plan_reviews(plan_id: str, request: Request):
     # May break if this is bigger than buffer
-    reviews =  [
+    reviews = [
         plan
         async for plan in request.app.mongodb[REVIEWS_COLLECTION_NAME].find(
             {"plan_id": plan_id}
@@ -99,6 +107,3 @@ async def get_training_plan_reviews(plan_id: str, request: Request):
     mean = statistics.fmean(scores)
     content = {"reviews": reviews, "mean": mean}
     return JSONResponse(status_code=status.HTTP_200_OK, content=content)
-
-
-
