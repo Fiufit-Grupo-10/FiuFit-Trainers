@@ -150,7 +150,53 @@ def test_update_unexisting_plan(test_app):
     id = 'unexisting_id'
 
     response = test_app.put(f"/plans/{id}", json=updated_plan)
+    
     assert response.status_code == 404
 
 
+@pytest.mark.anyio    
+async def test_obtain_created_plans():
+    
+    trainer = "Abdulazeez trainer"
+    plan_1 = {
+        "trainer": trainer,
+        "title": "Pilates training plan",
+        "description": "A pilates training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 30,
+        "reviews": None,
+    }
+
+    plan_2 = {
+        "trainer": trainer,
+        "title": "Crossfit training plan",
+        "description": "A crossfit training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 120,
+        "reviews": None,
+    }
+    expected = [plan_1,plan_2]
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response_1 = await ac.post("/plans", json=plan_1)
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response_2 = await ac.post("/plans", json=plan_2)        
+        
+
+    assert response_1.status_code == 201
+    assert response_2.status_code == 201
+
+    #async with AsyncClient(app=app, base_url="http://test") as ac:
+     #   response_3 = await ac.get(f"/plans/{trainer}")        
+
+    #print(response_3.json())
+
+    #assert set(response_3.json()) == set(expected)
 
