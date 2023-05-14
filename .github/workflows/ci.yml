@@ -63,10 +63,10 @@ jobs:
       - name: Run flake
         run:  poetry run flake8 'app' --max-line-length 100
                 
-      - name: StartMongoDb
-        uses: supercharge/mongodb-github-action@1.8.0
-        with:
-          mongodb-version: 4.4
+#       - name: StartMongoDb
+#         uses: supercharge/mongodb-github-action@1.8.0
+#         with:
+#           mongodb-version: 4.4
       
       - name: Run docker-compose tests
         run: docker-compose -f docker-compose-testing.yml run --rm tests
