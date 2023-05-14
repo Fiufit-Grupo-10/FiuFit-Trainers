@@ -61,7 +61,15 @@ jobs:
         run: poetry run black 'app' --check --verbose --diff --color
       
       - name: Run flake
-        run:  poetry run flake8 'app' --max-line-length 100      
+        run:  poetry run flake8 'app' --max-line-length 100
+        
+      - name: StartMongoDb
+        uses: supercharge/mongodb-github-action@1.8.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
+      
+      - name: Run docker-compose tests
+        run: docker-compose -f docker-compose-testing.yml run --rm tests
 
       - name: Run tests
         run: poetry run pytest -v --cov=app --cov-report term --cov-report xml:coverage.xml tests/
