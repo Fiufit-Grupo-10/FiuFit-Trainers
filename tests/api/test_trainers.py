@@ -91,35 +91,66 @@ async def test_update_existing_plan():
     assert current_plan == expected_plan
 
 
+@pytest.mark.anyio    
+async def test_update_with_empty_body():
+    plan = {
+        "trainer": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
+        "title": "Sample training plan",
+        "description": "Training plan description",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 90,
+    }
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post("/plans", json=plan)
+        
+    id = response.json()["_id"]
 
-# def test_modify_plan(test_app):
-#     plan = {
-#         "trainer": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
-#         "title": "Sample training plan",
-#         "description": "Training plan description",
-#         "difficulty": "beginner",
-#         "training_types": ["cardio"],
-#         "media": ["link-to-image", "link-to-video"],
-#         "goals": ["plank: one minute"],
-#         "duration": 90,
-#         "reviews": None,
-#     }
+    updated_plan =  { }
+    
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.put(f"/plans/{id}", json=updated_plan)
 
-#     response = test_app.post("/plans", json=plan)
-#     assert response.status_code == 201
+    
+    assert response.status_code == 200
+    
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        current_plan = await app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": id})
 
-#     body = response.json()
+    expected_plan = {
+        "_id": id,
+        "trainer": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
+        "title": "Sample training plan",
+        "description": "Training plan description",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 90,
+    }
 
-#     new_plan = {
-#         "title": "New Sample training plan",
-#         "description": "New training plan description",
-#         "difficulty": "hard",
-#         "training_types": ["cardio", "hiit"],
-#         "media": ["link-to-image", "link-to-video"],
-#         "goals": ["plank: one minute"],
-#         "duration": 30,
-#     }
+    assert current_plan == expected_plan
 
-#     id = body["_id"]
-#     response = test_app.put(f"/plans/{id}")
-#     routes
+
+def test_update_unexisting_plan(test_app):
+    
+    updated_plan = {
+        "trainer": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
+        "title": "Sample training plan",
+        "description": "Training plan description",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 90,
+        "reviews": None,
+    }
+    id = 'unexisting_id'
+
+    response = test_app.put(f"/plans/{id}", json=updated_plan)
+    assert response.status_code == 404
+
+
+
