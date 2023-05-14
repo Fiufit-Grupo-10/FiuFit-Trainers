@@ -66,8 +66,9 @@ jobs:
       - name: Run docker-compose tests
         run: docker-compose -f docker-compose-testing.yml run --rm tests
 
-      - name: Run tests
-        run: poetry run pytest -v --cov=app --cov-report term --cov-report xml:coverage.xml tests/
+#       - name: Run tests
+#         run: poetry run pytest -v --cov=app --cov-report term --cov-report xml:coverage.xml tests/
+  
       - name: Upload coverage
         if: ${{ !inputs.skipTests }}  # upload when we really run our tests
         uses: codecov/codecov-action@v3
