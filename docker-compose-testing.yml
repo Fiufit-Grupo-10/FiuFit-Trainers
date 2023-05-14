@@ -21,6 +21,23 @@ services:
     networks:
       - fiufit_network
 
+  tests:
+    build:
+      context: .
+    ports:
+      - 8090:80
+    volumes:
+      - ./:/app
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017/
+ 
+    depends_on:   
+      - mongodb
+    networks:
+      - fiufit_network
+
+    command: pytest tests/
+    
   mongodb:
     image: mongo:latest
 
