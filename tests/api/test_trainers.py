@@ -1,6 +1,8 @@
 from app.api.trainers import routes
 from app.config.database import TRAININGS_COLLECTION_NAME
-
+from app.main import app
+from httpx import AsyncClient
+import pytest
 
 def test_create_plan_without_errors(test_app):
     plan = {
@@ -37,7 +39,8 @@ def test_plan_with_missing_field(test_app):
     assert response.status_code == 422
 
 
-async def test_update_existing_plan(test_app):
+@pytest.mark.anyio    
+async def test_update_existing_plan():
     plan = {
         "trainer": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
         "title": "Sample training plan",
@@ -49,7 +52,9 @@ async def test_update_existing_plan(test_app):
         "duration": 90,
         "reviews": None,
     }
-    response = test_app.post("/plans", json=plan)
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post("/plans", json=plan)
+        
     id = response.json()["_id"]
 
     updated_plan =   {
@@ -63,13 +68,13 @@ async def test_update_existing_plan(test_app):
             }
     
     
-
-    response = test_app.put(f"/plans/{id}", json=updated_plan)
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.put(f"/plans/{id}", json=updated_plan)
 
     
     assert response.status_code == 200
-
-    current_plan = await test_app.app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": id})
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        current_plan = await app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": id})
 
     expected_plan = {
         "_id": id,
@@ -81,7 +86,6 @@ async def test_update_existing_plan(test_app):
         "media": ["link-to-image", "link-to-video", "link-to-image2"],
         "goals": ["plank: two minute"],
         "duration": 30,
-        "reviews": None,
     }
 
     assert current_plan == expected_plan

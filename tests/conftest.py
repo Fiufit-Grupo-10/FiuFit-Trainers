@@ -2,6 +2,9 @@ from pytest import fixture
 from starlette.config import environ
 from starlette.testclient import TestClient
 
+@fixture
+def anyio_backend():
+    return 'asyncio'
 
 @fixture(scope="session")
 def test_app():
