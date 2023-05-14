@@ -19,6 +19,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest        
+    strategy:
+          matrix:
+            mongodb-version: ['4.2', '4.4', '5.0', '6.0']
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -62,7 +65,7 @@ jobs:
       
       - name: Run flake
         run:  poetry run flake8 'app' --max-line-length 100
-        
+                
       - name: StartMongoDb
         uses: supercharge/mongodb-github-action@1.8.0
         with:
