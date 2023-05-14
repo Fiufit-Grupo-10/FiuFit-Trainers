@@ -64,7 +64,7 @@ jobs:
         run:  poetry run flake8 'app' --max-line-length 100
                       
       - name: Run docker-compose tests
-        run: docker-compose -f docker-compose-testing.yml run --rm tests
+        run: docker-compose -f docker-compose-testing.yml run --rm ci-tests
 
 #       - name: Run tests
 #         run: poetry run pytest -v --cov=app --cov-report term --cov-report xml:coverage.xml tests/

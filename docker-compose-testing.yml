@@ -37,7 +37,26 @@ services:
       - fiufit_network
 
     command: pytest tests/
+
+  ci-tests:
+    build:
+      context: .
+    ports:
+        - 8090:80
+    volumes:
+        - ./:/app
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017/
+ 
+    depends_on:   
+      - mongodb
+
+    networks:
+      - fiufit_network
+
+    command: poetry run pytest -v --cov=app --cov-report term --cov-report xml:coverage.xml tests/
     
+
   mongodb:
     image: mongo:latest
 
