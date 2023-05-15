@@ -1,3 +1,4 @@
+from urllib import response
 from app.api.trainers import routes
 from app.config.database import TRAININGS_COLLECTION_NAME
 from app.main import app
@@ -156,7 +157,7 @@ def test_update_unexisting_plan(test_app):
 
 
 @pytest.mark.anyio
-async def test_obtain_created_plans():
+async def test_obtain_created_plans_of_certain_trainer():
     trainer = "Abdulazeez trainer"
     plan_1 = {
         "trainer": trainer,
@@ -170,7 +171,7 @@ async def test_obtain_created_plans():
         "reviews": None,
     }
 
-    plan_2 = {
+    plan_2 = {        
         "trainer": trainer,
         "title": "Crossfit training plan",
         "description": "A crossfit training plan",
@@ -181,14 +182,31 @@ async def test_obtain_created_plans():
         "duration": 120,
         "reviews": None,
     }
-    expected = [plan_1, plan_2]
 
-    # async with AsyncClient(app=app, base_url="http://test") as ac:
-    #     current_plan = await app.mongodb[TRAININGS_COLLECTION_NAME].delete_one(plan_1)
+    plan_1_ = {
+        '_id': '',        
+        "trainer": trainer,
+        "title": "Pilates training plan",
+        "description": "A pilates training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 30,    
+    }
 
-    # async with AsyncClient(app=app, base_url="http://test") as ac:
-    #     current_plan = await app.mongodb[TRAININGS_COLLECTION_NAME].delete_one(plan_2)
-
+    plan_2_ = {
+        '_id': '',
+        "trainer": trainer,
+        "title": "Crossfit training plan",
+        "description": "A crossfit training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 120,
+    }
+    expected = [plan_1_, plan_2_]
 
 
     async with AsyncClient(app=app, base_url="http://test") as ac:
@@ -203,9 +221,16 @@ async def test_obtain_created_plans():
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response_3 = await ac.get(f"/plans/{trainer}")        
 
-    # print(response_3.json())
-    print(len(response_3.json()))
-    assert 1==1
-    # print(type(response_3.json()))
-    #sorted(response_3.json().items()) == sorted(expected.items())
+    json_result = response_3.json()
+
+    assert len(json_result) == 2 
+
+    assert json_result[0] != json_result[1]
+
+    json_result[0]['_id'] = '';
+    json_result[1]['_id'] = '';
+    
+    assert (json_result[0] == expected[0]) or (json_result[0] == expected[1] )
+    assert (json_result[1] == expected[0]) or (json_result[1] == expected[1] )
+
 
