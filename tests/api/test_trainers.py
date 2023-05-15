@@ -171,7 +171,7 @@ async def test_obtain_created_plans_of_certain_trainer():
         "reviews": None,
     }
 
-    plan_2 = {        
+    plan_2 = {
         "trainer": trainer,
         "title": "Crossfit training plan",
         "description": "A crossfit training plan",
@@ -184,7 +184,7 @@ async def test_obtain_created_plans_of_certain_trainer():
     }
 
     plan_1_ = {
-        '_id': '',        
+        "_id": "",
         "trainer": trainer,
         "title": "Pilates training plan",
         "description": "A pilates training plan",
@@ -192,11 +192,11 @@ async def test_obtain_created_plans_of_certain_trainer():
         "training_types": ["cardio"],
         "media": ["link-to-image", "link-to-video"],
         "goals": ["plank: one minute"],
-        "duration": 30,    
+        "duration": 30,
     }
 
     plan_2_ = {
-        '_id': '',
+        "_id": "",
         "trainer": trainer,
         "title": "Crossfit training plan",
         "description": "A crossfit training plan",
@@ -208,7 +208,6 @@ async def test_obtain_created_plans_of_certain_trainer():
     }
     expected = [plan_1_, plan_2_]
 
-
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response_1 = await ac.post("/plans", json=plan_1)
 
@@ -219,18 +218,16 @@ async def test_obtain_created_plans_of_certain_trainer():
     assert response_2.status_code == 201
 
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response_3 = await ac.get(f"/plans/{trainer}")        
+        response_3 = await ac.get(f"/plans/{trainer}")
 
     json_result = response_3.json()
 
-    assert len(json_result) == 2 
+    assert len(json_result) == 2
 
     assert json_result[0] != json_result[1]
 
-    json_result[0]['_id'] = '';
-    json_result[1]['_id'] = '';
-    
-    assert (json_result[0] == expected[0]) or (json_result[0] == expected[1] )
-    assert (json_result[1] == expected[0]) or (json_result[1] == expected[1] )
+    json_result[0]["_id"] = ""
+    json_result[1]["_id"] = ""
 
-
+    assert (json_result[0] == expected[0]) or (json_result[0] == expected[1])
+    assert (json_result[1] == expected[0]) or (json_result[1] == expected[1])

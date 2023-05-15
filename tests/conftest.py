@@ -2,7 +2,11 @@ from pytest import fixture
 from starlette.config import environ
 from starlette.testclient import TestClient
 from app.main import app
-from app.config.database import DB_NAME, REVIEWS_COLLECTION_NAME, TRAININGS_COLLECTION_NAME
+from app.config.database import (
+    DB_NAME,
+    REVIEWS_COLLECTION_NAME,
+    TRAININGS_COLLECTION_NAME,
+)
 
 
 @fixture
@@ -16,7 +20,7 @@ def test_app():
         yield test_client
 
 
-@fixture(autouse=True,scope="function")
+@fixture(autouse=True, scope="function")
 async def cleanup():
     yield
     await app.mongodb_client.drop_database(DB_NAME)

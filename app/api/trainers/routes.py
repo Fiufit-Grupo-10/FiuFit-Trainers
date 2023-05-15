@@ -102,7 +102,7 @@ async def get_training_plan_reviews(plan_id: str, request: Request):
             {"plan_id": plan_id}
         )
     ]
-    
+
     scores = [r["score"] for r in reviews]
     content = {}
     if reviews:
