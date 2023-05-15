@@ -2,7 +2,7 @@
 [![codecov](https://codecov.io/gh/Fiufit-Grupo-10/FiuFit-Trainers/branch/main/graph/badge.svg?token=RtE2x86dJV)](https://codecov.io/gh/Fiufit-Grupo-10/FiuFit-Trainers)
 # FiuFit-Trainers
 
-Microservice users implementation for Fiufit application
+Microservice trainers implementation for Fiufit application
 
 ## Running dev enviroment:
 
@@ -10,18 +10,12 @@ To set up the development environment for this microservice, you need to have Do
 ### 1. Clone this repository
 
 ```bash
-git clone git@github.com:Fiufit-Grupo-10/FiuFit-Users.git
+git clone git@github.com:Fiufit-Grupo-10/FiuFit-Trainers.git
 ```
 ### 2. Navigate to the cloned repository and execute
 
 ```bash
 sudo docker-compose -f docker-compose-testing.yml up --build
-```
-
-### 3. Run this command in a new terminal to complete the initialization of the database service
-
-```bash
-sudo docker-compose -f docker-compose-testing.yml exec db psql --username=fiufit --dbname=fiufit_users_dev -f /docker-entrypoint-initdb.d/insert_tt.sql    
 ```
 
 ## To run tests or other commands on the container:
@@ -31,13 +25,8 @@ sudo docker-compose -f docker-compose-testing.yml exec <command>
 ```
 ### Examples
 
-To access the PostgreSQL service through the command line
-
-```bash
-sudo docker-compose -f docker-compose-testing.yml exec db psql --username=fiufit --dbname=fiufit_users_dev
-```
 To run tests
 
 ```bash
-docker-compose -f docker-compose-testing.yml exec web pytest -v
+docker-compose -f docker-compose-testing.yml run --rm tests
 ```
