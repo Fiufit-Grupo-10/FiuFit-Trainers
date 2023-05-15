@@ -6,6 +6,7 @@ import asyncio
 
 app = FastAPI()
 
+
 @app.on_event("startup")
 async def startup_db_client():
     app.mongodb_client = AsyncIOMotorClient(MONGO_URL)
