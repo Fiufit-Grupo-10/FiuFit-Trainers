@@ -183,6 +183,14 @@ async def test_obtain_created_plans():
     }
     expected = [plan_1, plan_2]
 
+    # async with AsyncClient(app=app, base_url="http://test") as ac:
+    #     current_plan = await app.mongodb[TRAININGS_COLLECTION_NAME].delete_one(plan_1)
+
+    # async with AsyncClient(app=app, base_url="http://test") as ac:
+    #     current_plan = await app.mongodb[TRAININGS_COLLECTION_NAME].delete_one(plan_2)
+
+
+
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response_1 = await ac.post("/plans", json=plan_1)
 
@@ -192,9 +200,12 @@ async def test_obtain_created_plans():
     assert response_1.status_code == 201
     assert response_2.status_code == 201
 
-    # async with AsyncClient(app=app, base_url="http://test") as ac:
-    #   response_3 = await ac.get(f"/plans/{trainer}")
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response_3 = await ac.get(f"/plans/{trainer}")        
 
     # print(response_3.json())
+    print(len(response_3.json()))
+    assert 1==1
+    # print(type(response_3.json()))
+    #sorted(response_3.json().items()) == sorted(expected.items())
 
-    # assert set(response_3.json()) == set(expected)

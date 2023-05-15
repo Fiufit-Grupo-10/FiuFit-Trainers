@@ -16,9 +16,10 @@ def test_app():
         yield test_client
 
 
-@fixture(scope="session")
+@fixture(autouse=True,scope="session")
 def cleanup():
-    app.mongodb.drop_database(DB_NAME)
+    yield
+    app.mongodb.client.drop_database(DB_NAME)
 
 
 environ["TESTING"] = "TRUE"
