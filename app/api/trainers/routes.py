@@ -93,7 +93,7 @@ async def create_review(review: Review, request: Request):
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_review)
 
 
-@router.get("/reviews/{plan_id}", response_model=list[ReviewResponse])
+@router.get("/reviews/{plan_id}", response_model=ReviewResponse)
 async def get_training_plan_reviews(plan_id: str, request: Request):
     # May break if this is bigger than buffer
     reviews = [
@@ -102,8 +102,10 @@ async def get_training_plan_reviews(plan_id: str, request: Request):
             {"plan_id": plan_id}
         )
     ]
-    print(reviews)
+    
     scores = [r["score"] for r in reviews]
-    mean = statistics.fmean(scores)
-    content = {"reviews": reviews, "mean": mean}
+    content = {}
+    if reviews
+        mean = statistics.fmean(scores)
+        content = {"reviews": reviews, "mean": mean}
     return JSONResponse(status_code=status.HTTP_200_OK, content=content)
