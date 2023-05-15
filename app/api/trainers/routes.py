@@ -105,7 +105,7 @@ async def get_training_plan_reviews(plan_id: str, request: Request):
     
     scores = [r["score"] for r in reviews]
     content = {}
-    if reviews
+    if reviews:
         mean = statistics.fmean(scores)
         content = {"reviews": reviews, "mean": mean}
     return JSONResponse(status_code=status.HTTP_200_OK, content=content)
