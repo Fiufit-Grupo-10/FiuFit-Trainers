@@ -96,7 +96,6 @@ class UpdateTrainingPlan(BaseModel):
 
 class ReviewResponse(BaseModel):
     reviews: list[Review]
-    mean: float
 
     class Config:
         schema_extra = {
@@ -114,7 +113,17 @@ class ReviewResponse(BaseModel):
                         "review": "Another review",
                         "score": 3,
                     },
-                ],
+                ]
+            }
+        }
+
+
+class ReviewMeanResponse(BaseModel):
+    mean: float = Field(...)
+
+    class Config:
+        schema_extra = {
+            "example": {
                 "mean": 4.5,
             }
         }

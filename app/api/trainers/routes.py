@@ -1,3 +1,4 @@
+from anyio import current_effective_deadline
 from fastapi import APIRouter, HTTPException, Request, status, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -6,6 +7,7 @@ from app.config.database import TRAININGS_COLLECTION_NAME, REVIEWS_COLLECTION_NA
 from app.api.trainers.models import (
     Review,
     ReviewResponse,
+    ReviewMeanResponse,
     TrainingPlan,
     UpdateTrainingPlan,
 )
@@ -93,19 +95,36 @@ async def create_review(review: Review, request: Request):
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_review)
 
 
+@router.get("/reviews/{plan_id}/mean", response_model=ReviewMeanResponse)
+async def get_training_plan_mean(
+    plan_id: str,
+    request: Request,
+):
+    pipeline = [
+        {"$match": {"plan_id": plan_id}},
+        {"$group": {"_id": None, "mean": {"$avg": "$score"}}},
+    ]
+    cursor = request.app.mongodb[REVIEWS_COLLECTION_NAME].aggregate(pipeline)
+
+    current_score = 0
+    async for score in cursor:
+        current_score = score["mean"]
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"mean": current_score})
+
+
 @router.get("/reviews/{plan_id}", response_model=ReviewResponse)
-async def get_training_plan_reviews(plan_id: str, request: Request):
-    # May break if this is bigger than buffer
+async def get_training_plan_reviews(
+    plan_id: str,
+    request: Request,
+    skip: int = 0,
+    limit: int = 25,
+):
     reviews = [
         plan
         async for plan in request.app.mongodb[REVIEWS_COLLECTION_NAME].find(
-            {"plan_id": plan_id}
+            filter={"plan_id": plan_id}, skip=skip, limit=limit
         )
     ]
-
-    scores = [r["score"] for r in reviews]
-    content = {}
-    if reviews:
-        mean = statistics.fmean(scores)
-        content = {"reviews": reviews, "mean": mean}
+    content = {"reviews": reviews}
     return JSONResponse(status_code=status.HTTP_200_OK, content=content)

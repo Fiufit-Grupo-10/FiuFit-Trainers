@@ -234,33 +234,33 @@ async def test_obtain_created_plans_of_certain_trainer():
 
 
 def test_create_review_without_errors(test_app):
-    review = {                
-                "plan_id": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
-                "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
-                "review": "Very good training",
-                "score": 2,
+    review = {
+        "plan_id": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
+        "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+        "review": "Very good training",
+        "score": 2,
     }
-    
+
     response = test_app.post("/reviews", json=review)
     assert response.status_code == 201
 
     body = response.json()
     assert "_id" in body
 
-def test_create_review_with_invalid_score(test_app):
 
-    review_1 = {                
-                "plan_id": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
-                "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
-                "review": "Very good training",
-                "score": 10,
+def test_create_review_with_invalid_score(test_app):
+    review_1 = {
+        "plan_id": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
+        "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+        "review": "Very good training",
+        "score": 10,
     }
-    
-    review_2 = {                
-                "plan_id": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
-                "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
-                "review": "Very good training",
-                "score": -2,
+
+    review_2 = {
+        "plan_id": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
+        "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+        "review": "Very good training",
+        "score": -2,
     }
 
     response = test_app.post("/reviews", json=review_1)
@@ -270,8 +270,49 @@ def test_create_review_with_invalid_score(test_app):
     assert response.status_code == 422
 
 
+def test_obtain_n_plans(test_app):
+    plan = {
+        "trainer": "Abdulazeez trainer",
+        "title": "Pilates training plan",
+        "description": "A pilates training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 30,
+        "reviews": None,
+    }
+    response = test_app.post("/plans", json=plan)
+    id = response.json()["_id"]
 
+    review_1 = {
+        "plan_id": id,
+        "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+        "review": "1",
+        "score": 2,
+    }
+    review_2 = {
+        "plan_id": id,
+        "user_id": "7ca0fa95asffffffffffffads",
+        "review": "2",
+        "score": 2,
+    }
+    review_3 = {
+        "plan_id": id,
+        "user_id": "7ca0fa95-afasdddddddddd",
+        "review": "3",
+        "score": 5,
+    }
+    review_4 = {
+        "plan_id": id,
+        "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+        "review": "4",
+        "score": 5,
+    }
+    response_1 = test_app.post("/reviews", json=review_1)
+    response_2 = test_app.post("/reviews", json=review_2)
+    response_3 = test_app.post("/reviews", json=review_3)
+    response_4 = test_app.post("/reviews", json=review_4)
 
-
-
-
+    result1 = test_app.get(f"/reviews/{id}/mean")
+    result = test_app.get(f"/reviews/{id}", params={"limit": "1", "skip": "1"})
