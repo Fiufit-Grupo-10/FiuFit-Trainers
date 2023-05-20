@@ -270,7 +270,106 @@ def test_create_review_with_invalid_score(test_app):
     assert response.status_code == 422
 
 
+def test_obtain_n_plans(test_app):
+    plan = {
+        "trainer": "Abdulazeez trainer",
+        "title": "Pilates training plan",
+        "description": "A pilates training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 30,
+        "reviews": None,
+    }
+    response = test_app.post("/plans", json=plan)
+    id = response.json()["_id"]
 
+    review_1 = {                
+                "plan_id": id,
+                "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+                "review": "1",
+                "score": 2,
+    }
+    review_2 = {                
+                "plan_id": id,
+                "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+                "review": "2",
+                "score": 2,
+    }
+    review_3 = {                
+                "plan_id": id,
+                "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+                "review": "3",
+                "score": 2,
+    }
+    review_4 = {                
+                "plan_id": id,
+                "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+                "review": "4",
+                "score": 2,
+    }
+    response_1 = test_app.post("/reviews", json=review_1)
+    response_2 = test_app.post("/reviews", json=review_2)
+    response_3 = test_app.post("/reviews", json=review_3)
+    response_4 = test_app.post("/reviews", json=review_4)
+
+    
+    result = test_app.get(f"/reviews/{id}", params={"limit": "1", "skip": "1"})
+    
+    
+    
+    
+
+
+
+
+# @pytest.mark.anyio
+# async def test_obtain_reviews_from_certain_plan():
+#     plan = {
+#         "trainer": "Abdulazeez trainer",
+#         "title": "Pilates training plan",
+#         "description": "A pilates training plan",
+#         "difficulty": "beginner",
+#         "training_types": ["cardio"],
+#         "media": ["link-to-image", "link-to-video"],
+#         "goals": ["plank: one minute"],
+#         "duration": 30,
+#         "reviews": None,
+#     }
+#     async with AsyncClient(app=app, base_url="http://test") as ac:
+#         response = await ac.post("/plans", json=plan)
+
+#     id = response.json()["_id"]
+
+#     review = {                
+#                 "plan_id": id,
+#                 "user_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
+#                 "review": "Very good training, 10/10 :)",
+#                 "score": 4,
+#     }
+
+#     async with AsyncClient(app=app, base_url="http://test") as ac:
+#         response = await ac.post("/reviews", json=review)
+
+
+#     async with AsyncClient(app=app, base_url="http://test") as ac:
+#         response = await ac.get(f"/reviews/{id}")
+
+#     print(response.json())
+#     assert response.status_code == 201
+
+
+
+# {'reviews': [{      '_id': '224e4826-4f53-41bf-8cda-fc5732f4da35',
+#                     'plan_id': 'f84cc528-3ff4-462d-8ef0-c7a6b05b9260',
+#                     'user_id': '7ca0fa95-af47-40b4-8e39-2fae5ee2667a',
+#                     'review': 'Very good training, 10/10 :)',
+#                     'score': 4}],
+#                     'mean': 4.0}
+
+    
+    
 
 
 

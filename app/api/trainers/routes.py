@@ -94,12 +94,17 @@ async def create_review(review: Review, request: Request):
 
 
 @router.get("/reviews/{plan_id}", response_model=ReviewResponse)
-async def get_training_plan_reviews(plan_id: str, request: Request):
+async def get_training_plan_reviews(
+    plan_id: str,
+    request: Request,
+    skip: int = 0,
+    limit: int = 25,
+    ):
     # May break if this is bigger than buffer
     reviews = [
         plan
         async for plan in request.app.mongodb[REVIEWS_COLLECTION_NAME].find(
-            {"plan_id": plan_id}
+            filter={"plan_id": plan_id}, skip=skip, limit=limit
         )
     ]
 
