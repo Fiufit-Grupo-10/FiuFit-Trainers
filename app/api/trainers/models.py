@@ -127,3 +127,16 @@ class ReviewMeanResponse(BaseModel):
                 "mean": 4.5,
             }
         }
+
+class UpdateReview(BaseModel):
+    review: str | None = Field(default=None, max_length=REVIEW_MAX_LENGTH)
+    score: int | None = Field(..., gt=0, le=5)
+
+    class Config:
+        allow_population_by_field_name = True
+        schema_extra = {
+            "example": {
+                "review": "Updated review",
+                "score": 5,
+            }
+        }
