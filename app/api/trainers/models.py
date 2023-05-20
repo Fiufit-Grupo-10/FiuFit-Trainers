@@ -119,7 +119,7 @@ class ReviewResponse(BaseModel):
 
 
 class ReviewMeanResponse(BaseModel):
-    mean: float
+    mean: float = Field(...)
 
     class Config:
         schema_extra = {

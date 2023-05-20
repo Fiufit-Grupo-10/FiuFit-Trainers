@@ -105,9 +105,11 @@ async def get_training_plan_mean(
         {"$group": {"_id": None, "mean": {"$avg": "$score"}}},
     ]
     cursor = request.app.mongodb[REVIEWS_COLLECTION_NAME].aggregate(pipeline)
+
     current_score = 0
     async for score in cursor:
-        current_score = score
+        current_score = score["mean"]
+
     return JSONResponse(status_code=status.HTTP_200_OK, content={"mean": current_score})
 
 
