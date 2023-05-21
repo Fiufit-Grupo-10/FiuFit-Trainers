@@ -1,4 +1,3 @@
-from anyio import current_effective_deadline
 from fastapi import APIRouter, HTTPException, Request, status, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -12,7 +11,6 @@ from app.api.trainers.models import (
     UpdateReview,
     UpdateTrainingPlan,
 )
-import statistics
 
 router = APIRouter(tags=["plans"])
 
