@@ -1,4 +1,3 @@
-from anyio import current_effective_deadline
 from fastapi import APIRouter, HTTPException, Request, status, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -9,9 +8,9 @@ from app.api.trainers.models import (
     ReviewResponse,
     ReviewMeanResponse,
     TrainingPlan,
+    UpdateReview,
     UpdateTrainingPlan,
 )
-import statistics
 
 router = APIRouter(tags=["plans"])
 
@@ -85,14 +84,53 @@ async def get_training_plans(
     ]
 
 
-@router.post("/reviews", response_model=Review)
+@router.post("/reviews", response_model=Review | dict)
 async def create_review(review: Review, request: Request):
-    review = jsonable_encoder(review)
-    new_review = await request.app.mongodb[REVIEWS_COLLECTION_NAME].insert_one(review)
-    created_review = await request.app.mongodb[REVIEWS_COLLECTION_NAME].find_one(
-        {"_id": new_review.inserted_id}
+    existing_review = await request.app.mongodb[REVIEWS_COLLECTION_NAME].find_one(
+        {"$and": [{"plan_id": review.plan_id}, {"user_id": review.user_id}]}
     )
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_review)
+    if existing_review is None:
+        review = jsonable_encoder(review)
+        new_review = await request.app.mongodb[REVIEWS_COLLECTION_NAME].insert_one(
+            review
+        )
+        created_review = await request.app.mongodb[REVIEWS_COLLECTION_NAME].find_one(
+            {"_id": new_review.inserted_id}
+        )
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_review)
+
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT, content={"error": "Review already exists"}
+    )
+
+
+@router.put("/reviews/{review_id}", response_model=UpdateReview)
+async def modify_review(review_id: str, plan: UpdateReview, request: Request):
+    updated_review = {k: v for k, v in plan.dict().items() if v is not None}
+
+    if len(updated_review) > 0:
+        result = await request.app.mongodb[REVIEWS_COLLECTION_NAME].update_one(
+            {"_id": review_id}, {"$set": updated_review}
+        )
+
+        if result.modified_count == 1:
+            updated_review = await request.app.mongodb[
+                TRAININGS_COLLECTION_NAME
+            ].find_one({"_id": review_id})
+
+            if updated_review is not None:
+                return updated_review
+
+    current_review = await request.app.mongodb[REVIEWS_COLLECTION_NAME].find_one(
+        {"_id": review_id}
+    )
+
+    if current_review is not None:
+        return current_review
+
+    raise HTTPException(
+        status_code=HTTP_404_NOT_FOUND, detail=f"Review {review_id} not found"
+    )
 
 
 @router.get("/reviews/{plan_id}/mean", response_model=ReviewMeanResponse)
