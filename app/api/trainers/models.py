@@ -128,6 +128,7 @@ class ReviewMeanResponse(BaseModel):
             }
         }
 
+
 class UpdateReview(BaseModel):
     review: str | None = Field(default=None, max_length=REVIEW_MAX_LENGTH)
     score: int | None = Field(..., gt=0, le=5)
