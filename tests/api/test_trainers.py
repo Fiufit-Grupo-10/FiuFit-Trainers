@@ -174,7 +174,7 @@ async def test_delete_existing_plan():
     id = response.json()["_id"]
 
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.delete(f"/plans/{id}")
+        response = await ac.delete(f"/plans/c59710ef-f5d0-41ba-a787-ad8eb739ef4c/{id}")
 
     assert response.status_code == 204
 
@@ -183,7 +183,7 @@ async def test_delete_existing_plan():
 async def test_delete_non_existing_plan():
     id = "abc"
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.delete(f"/plans/{id}")
+        response = await ac.delete(f"/plans/xyz/{id}")
 
     assert response.status_code == 404
 

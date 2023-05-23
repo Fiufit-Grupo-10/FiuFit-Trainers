@@ -65,7 +65,7 @@ async def get_trainer_training_plans(trainer_id: str, request: Request):
     ]
 
 
-@router.delete("/plans/{plan_id}")
+@router.delete("/plans/{trainer_id}/{plan_id}")
 async def delete_trainer_plan(plan_id: str, request: Request):
     delete_result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].delete_one(
         {"_id": plan_id}
