@@ -65,6 +65,21 @@ async def get_trainer_training_plans(trainer_id: str, request: Request):
     ]
 
 
+@router.delete("/plans/{trainer_id}/{plan_id}")
+async def delete_trainer_plan(plan_id: str, request: Request):
+    delete_result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].delete_one(
+        {"_id": plan_id}
+    )
+
+    if delete_result.deleted_count != 1:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"plan {plan_id} doesn't exist",
+        )
+
+    return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content=None)
+
+
 @router.get("/plans")
 async def get_training_plans(
     request: Request,
