@@ -1,4 +1,3 @@
-from urllib import response
 from app.api.trainers import routes
 from app.config.database import TRAININGS_COLLECTION_NAME
 from app.main import app
@@ -152,6 +151,39 @@ def test_update_unexisting_plan(test_app):
     id = "unexisting_id"
 
     response = test_app.put(f"/plans/{id}", json=updated_plan)
+
+    assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_delete_existing_plan():
+    plan = {
+        "trainer": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
+        "title": "Sample training plan",
+        "description": "Training plan description",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 90,
+        "reviews": None,
+    }
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post("/plans", json=plan)
+
+    id = response.json()["_id"]
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.delete(f"/plans/{id}")
+
+    assert response.status_code == 204
+
+
+@pytest.mark.anyio
+async def test_delete_non_existing_plan():
+    id = "abc"
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.delete(f"/plans/{id}")
 
     assert response.status_code == 404
 
