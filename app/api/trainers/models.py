@@ -42,11 +42,7 @@ class TrainingPlan(BaseModel):
     description: str | None = Field(default=None, max_length=MAX_DESCRIPTION_LENGTH)
     difficulty: Difficulty
     training_types: list[str] = Field(...)
-    media: list[str] | None = Field(
-        default=None,
-        description="Multimedia resources (urls) associated with the training plan",
-    )
-    goals: list[str] = Field(...)
+    goals: list = Field(...)
     duration: int = Field(...)
     blocked: bool = Field(default=False)
     
@@ -59,8 +55,14 @@ class TrainingPlan(BaseModel):
                 "description": "Training plan description",
                 "difficulty": "beginner",
                 "training_types": ["cardio"],
-                "media": ["link-to-image", "link-to-video"],
-                "goals": ["plank: one minute"],
+                "goals": [
+                    {
+                        "name": "123123",
+                        "category": "Repeticiones",
+                        "amount": "123",
+                        "media": ["imagen.com"],
+                    }
+                ],
                 "duration": 90,
                 "reviews": None,
                 "blocked": False
@@ -75,11 +77,7 @@ class UpdateTrainingPlan(BaseModel):
     description: str | None = Field(default=None, max_length=MAX_DESCRIPTION_LENGTH)
     difficulty: Difficulty | None
     training_types: list[str] | None = Field(default=None)
-    media: list[str] | None = Field(
-        default=None,
-        description="Multimedia resources (urls) associated with the training plan",
-    )
-    goals: list[str] | None = None
+    goals: list | None = None
     duration: int | None = Field(default=None)
     blocked: bool | None = Field(default=None)
 
@@ -90,8 +88,14 @@ class UpdateTrainingPlan(BaseModel):
                 "description": "Training plan description",
                 "difficulty": "advanced",
                 "training_types": ["cardio"],
-                "media": ["link-to-image", "link-to-video"],
-                "goals": ["plank: one minute"],
+                "goals": [
+                    {
+                        "name": "123123",
+                        "category": "Repeticiones",
+                        "amount": "123",
+                        "media": ["imagen.com"],
+                    }
+                ],
                 "duration": 30,
                 "blocked": False
             }
