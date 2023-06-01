@@ -1,6 +1,7 @@
 from app.api.trainers import routes
 from app.config.database import TRAININGS_COLLECTION_NAME
 from app.main import app
+from starlette import status
 from httpx import AsyncClient
 import pytest
 
@@ -348,3 +349,72 @@ def test_obtain_n_plans(test_app):
 
     result1 = test_app.get(f"/reviews/{id}/mean")
     result = test_app.get(f"/reviews/{id}", params={"limit": "1", "skip": "1"})
+
+
+@pytest.mark.anyio
+async def test_search_training_plan_by_difficulty():
+    trainer = "Abdulazeez trainer"
+    plans = [
+        {
+            "trainer": trainer,
+            "title": "Pilates training plan",
+            "description": "A pilates training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 30,
+            "reviews": None,
+        },
+        {
+            "trainer": trainer,
+            "title": "Crossfit training plan",
+            "description": "A crossfit training plan",
+            "difficulty": "intermediate",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 120,
+            "reviews": None,
+        },
+        {
+            "trainer": trainer,
+            "title": "Pilates training plan",
+            "description": "A pilates training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 30,
+        },
+        {
+            "trainer": trainer,
+            "title": "Crossfit training plan",
+            "description": "A crossfit training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 120,
+        },
+    ]
+
+    for plan in plans:
+        async with AsyncClient(app=app, base_url="http://test") as ac:
+            response = await ac.post("/plans", json=plan)
+
+    params = {"difficulty": "beginner"}
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.get(f"/plans", params=params)
+
+    json_result = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert len(json_result) == 3
+
+    params = {"difficulty": "advanced"}
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.get(f"/plans", params=params)
+
+    json_result = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert len(json_result) == 0

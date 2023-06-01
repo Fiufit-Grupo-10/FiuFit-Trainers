@@ -85,7 +85,7 @@ class UpdateTrainingPlan(BaseModel):
             "example": {
                 "title": "Sample training plan",
                 "description": "Training plan description",
-                "difficulty": "hard",
+                "difficulty": "advanced",
                 "training_types": ["cardio"],
                 "media": ["link-to-image", "link-to-video"],
                 "goals": ["plank: one minute"],
