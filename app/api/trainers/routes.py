@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND
 from app.config.database import TRAININGS_COLLECTION_NAME, REVIEWS_COLLECTION_NAME
 from app.api.trainers.models import (
+    Difficulty,
     Review,
     ReviewResponse,
     ReviewMeanResponse,
@@ -85,12 +86,17 @@ async def get_training_plans(
     request: Request,
     skip: int = 0,
     limit: int = 25,
+    difficulty: Difficulty | None = Query(default=None),
     types: list[str] | None = Query(default=None),
 ):
-    query = None
-    if types is not None:
-        query = {"training_types": {"$all": types}}
+    filters = []
+    if difficulty is not None:
+        filters.append({"difficulty": difficulty})
 
+    if types is not None:
+        filters.append({"$all": types})
+
+    query = {"$and": filters}
     return [
         plan
         async for plan in request.app.mongodb[TRAININGS_COLLECTION_NAME].find(
