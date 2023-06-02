@@ -115,7 +115,7 @@ async def get_training_plans(
         filters.append({"difficulty": difficulty})
 
     if types is not None:
-        filters.append({"$all": types})
+        filters.append({"training_types": {"$all": types}})
 
     query = None
     if filters:
