@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, status, Query
+from fastapi import APIRouter, HTTPException, Request, Response, status, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND
@@ -55,8 +55,27 @@ async def modify_training_plan(
     )
 
 
+@router.patch("/plans/{plan_id}")
+async def block_user(plan_id: str, plan: UpdateTrainingPlan, request: Request):
+    if plan.blocked is None:
+        return Response(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].update_one(
+        {"_id": plan_id}, {"$set": {"blocked": plan.blocked}}
+    )
+
+    if result.modified_count == 1:
+        return
+
+    raise HTTPException(
+        status_code=HTTP_404_NOT_FOUND, detail=f"Training plan {plan_id} not found"
+    )
+
+
 @router.get("/plans/{trainer_id}", response_model=list[TrainingPlan])
-async def get_trainer_training_plans(trainer_id: str, request: Request):
+async def get_trainer_training_plans(
+    trainer_id: str, request: Request, admin: bool = False
+):
     # May break if this is bigger than buffer
     return [
         plan
@@ -81,11 +100,12 @@ async def delete_trainer_plan(plan_id: str, request: Request):
     return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content=None)
 
 
-@router.get("/plans")
+@router.get("/plans", response_model=list[TrainingPlan])
 async def get_training_plans(
     request: Request,
     skip: int = 0,
     limit: int = 25,
+    admin: bool = False,
     difficulty: Difficulty | None = Query(default=None),
     types: list[str] | None = Query(default=None),
 ):
