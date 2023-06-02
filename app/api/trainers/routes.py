@@ -55,7 +55,7 @@ async def modify_training_plan(
     )
 
 
-#TODO: Change to list of blocked users
+# TODO: Change to list of blocked users
 @router.patch("/plans/{plan_id}")
 async def block_plan(plan_id: str, plan: UpdateTrainingPlan, request: Request):
     if plan.blocked is None:
