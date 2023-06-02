@@ -55,8 +55,9 @@ async def modify_training_plan(
     )
 
 
+#TODO: Change to list of blocked users
 @router.patch("/plans/{plan_id}")
-async def block_user(plan_id: str, plan: UpdateTrainingPlan, request: Request):
+async def block_plan(plan_id: str, plan: UpdateTrainingPlan, request: Request):
     if plan.blocked is None:
         return Response(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
@@ -116,7 +117,10 @@ async def get_training_plans(
     if types is not None:
         filters.append({"$all": types})
 
-    query = {"$and": filters}
+    query = None
+    if filters:
+        query = {"$and": filters}
+
     return [
         plan
         async for plan in request.app.mongodb[TRAININGS_COLLECTION_NAME].find(
