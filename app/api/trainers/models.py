@@ -48,7 +48,8 @@ class TrainingPlan(BaseModel):
     )
     goals: list[str] = Field(...)
     duration: int = Field(...)
-
+    blocked: bool = Field(default=False)
+    
     class Config:
         allow_population_by_field_name = True
         schema_extra = {
@@ -62,6 +63,7 @@ class TrainingPlan(BaseModel):
                 "goals": ["plank: one minute"],
                 "duration": 90,
                 "reviews": None,
+                "blocked": False
             }
         }
 
@@ -79,6 +81,7 @@ class UpdateTrainingPlan(BaseModel):
     )
     goals: list[str] | None = None
     duration: int | None = Field(default=None)
+    blocked: bool | None = Field(default=None)
 
     class Config:
         schema_extra = {
@@ -90,6 +93,7 @@ class UpdateTrainingPlan(BaseModel):
                 "media": ["link-to-image", "link-to-video"],
                 "goals": ["plank: one minute"],
                 "duration": 30,
+                "blocked": False
             }
         }
 

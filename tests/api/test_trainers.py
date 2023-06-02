@@ -88,6 +88,7 @@ async def test_update_existing_plan():
         "media": ["link-to-image", "link-to-video", "link-to-image2"],
         "goals": ["plank: two minute"],
         "duration": 30,
+        "blocked": False,
     }
 
     assert current_plan == expected_plan
@@ -104,6 +105,7 @@ async def test_update_with_empty_body():
         "media": ["link-to-image", "link-to-video"],
         "goals": ["plank: one minute"],
         "duration": 90,
+        "blocked": False,
     }
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.post("/plans", json=plan)
@@ -132,6 +134,7 @@ async def test_update_with_empty_body():
         "media": ["link-to-image", "link-to-video"],
         "goals": ["plank: one minute"],
         "duration": 90,
+        "blocked": False,
     }
 
     assert current_plan == expected_plan
@@ -202,6 +205,7 @@ async def test_obtain_created_plans_of_certain_trainer():
         "goals": ["plank: one minute"],
         "duration": 30,
         "reviews": None,
+        "blocked": False,
     }
 
     plan_2 = {
@@ -214,6 +218,7 @@ async def test_obtain_created_plans_of_certain_trainer():
         "goals": ["plank: one minute"],
         "duration": 120,
         "reviews": None,
+        "blocked": False,
     }
 
     plan_1_ = {
@@ -226,6 +231,7 @@ async def test_obtain_created_plans_of_certain_trainer():
         "media": ["link-to-image", "link-to-video"],
         "goals": ["plank: one minute"],
         "duration": 30,
+        "blocked": False,
     }
 
     plan_2_ = {
@@ -238,6 +244,7 @@ async def test_obtain_created_plans_of_certain_trainer():
         "media": ["link-to-image", "link-to-video"],
         "goals": ["plank: one minute"],
         "duration": 120,
+        "blocked": False,
     }
     expected = [plan_1_, plan_2_]
 
@@ -418,3 +425,73 @@ async def test_search_training_plan_by_difficulty():
     json_result = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert len(json_result) == 0
+
+
+@pytest.mark.anyio
+async def test_block_user():
+    plan = {
+        "trainer": "Abdulazeez trainer",
+        "title": "Pilates training plan",
+        "description": "A pilates training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 30,
+        "reviews": None,
+        "blocked": False,
+    }
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post("/plans", json=plan)
+    plan_id = response.json()["_id"]
+
+    block = {"blocked": True}
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.patch(f"/plans/{plan_id}", json=block)
+
+    assert response.status_code == status.HTTP_200_OK
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        plan = await app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": plan_id})
+    assert plan["blocked"] == True
+
+
+@pytest.mark.anyio
+async def test_block_user_wrong_body():
+    plan = {
+        "trainer": "Abdulazeez trainer",
+        "title": "Pilates training plan",
+        "description": "A pilates training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 30,
+        "reviews": None,
+        "blocked": False,
+    }
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post("/plans", json=plan)
+    plan_id = response.json()["_id"]
+
+    block = {}
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.patch(f"/plans/{plan_id}", json=block)
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        plan = await app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": plan_id})
+    assert plan["blocked"] == False
+
+    
+
+
+@pytest.mark.anyio
+async def test_block_plan_doesnt_exist():
+
+    block = {"blocked": True}
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.patch(f"/plans/abc", json=block)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
