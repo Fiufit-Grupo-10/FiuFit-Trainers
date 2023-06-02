@@ -45,7 +45,7 @@ class TrainingPlan(BaseModel):
     goals: list = Field(...)
     duration: int = Field(...)
     blocked: bool = Field(default=False)
-    
+
     class Config:
         allow_population_by_field_name = True
         schema_extra = {
@@ -65,7 +65,7 @@ class TrainingPlan(BaseModel):
                 ],
                 "duration": 90,
                 "reviews": None,
-                "blocked": False
+                "blocked": False,
             }
         }
 
@@ -97,7 +97,7 @@ class UpdateTrainingPlan(BaseModel):
                     }
                 ],
                 "duration": 30,
-                "blocked": False
+                "blocked": False,
             }
         }
 
