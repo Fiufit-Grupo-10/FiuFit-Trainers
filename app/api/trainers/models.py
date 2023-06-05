@@ -70,6 +70,11 @@ class TrainingPlan(BaseModel):
         }
 
 
+class BlockTrainingPlan(BaseModel):
+    uid: str = Field(...)
+    blocked: bool = Field(...)
+
+
 class UpdateTrainingPlan(BaseModel):
     title: str | None = Field(
         default=None, min_length=MIN_TITLE_LENGTH, max_length=MAX_TITLE_LENGTH
