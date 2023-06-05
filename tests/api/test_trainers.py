@@ -261,6 +261,81 @@ async def test_obtain_created_plans_of_certain_trainer():
     assert (json_result[1] == expected[0]) or (json_result[1] == expected[1])
 
 
+@pytest.mark.anyio
+async def test_get_trainer_plans_when_some_are_blocked():
+    trainer = "Abdulazeez trainer"
+    plans = [
+        {
+            "trainer": trainer,
+            "title": "Pilates training plan",
+            "description": "A pilates training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 30,
+            "reviews": None,
+            "blocked": True,
+        },
+        {
+            "trainer": trainer,
+            "title": "Crossfit training plan",
+            "description": "A crossfit training plan",
+            "difficulty": "intermediate",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 120,
+            "reviews": None,
+            "blocked": True,
+        },
+        {
+            "trainer": trainer,
+            "title": "Pilates training plan",
+            "description": "A pilates training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 30,
+            "blocked": True,
+        },
+        {
+            "trainer": trainer,
+            "title": "Crossfit training plan",
+            "description": "A crossfit training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 120,
+            "blocked": False,
+        },
+    ]
+
+    trainer_id = None
+    for plan in plans:
+        async with AsyncClient(app=app, base_url="http://test") as ac:
+            response = await ac.post("/plans", json=plan)
+            trainer_id = response.json()["trainer"]
+
+    params = {"admin": False}
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.get(f"/plans/{trainer_id}", params=params)
+
+    json_result = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert len(json_result) == 1
+
+    params = {"admin": True}
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.get(f"/plans/{trainer_id}", params=params)
+
+    json_result = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert len(json_result) == 4
+
+
 def test_create_review_without_errors(test_app):
     review = {
         "plan_id": "c59710ef-f5d0-41ba-a787-ad8eb739ef4c",
@@ -416,6 +491,76 @@ async def test_search_training_plan_by_difficulty():
 
 
 @pytest.mark.anyio
+async def test_search_training_plans_when_users_are_blocked():
+    trainer = "Abdulazeez trainer"
+    plans = [
+        {
+            "trainer": trainer,
+            "title": "Pilates training plan",
+            "description": "A pilates training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 30,
+            "reviews": None,
+            "blocked": True,
+        },
+        {
+            "trainer": trainer,
+            "title": "Crossfit training plan",
+            "description": "A crossfit training plan",
+            "difficulty": "intermediate",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 120,
+            "reviews": None,
+        },
+        {
+            "trainer": trainer,
+            "title": "Pilates training plan",
+            "description": "A pilates training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 30,
+        },
+        {
+            "trainer": trainer,
+            "title": "Crossfit training plan",
+            "description": "A crossfit training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 120,
+        },
+    ]
+
+    for plan in plans:
+        async with AsyncClient(app=app, base_url="http://test") as ac:
+            response = await ac.post("/plans", json=plan)
+
+    params = {"admin": False}
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.get(f"/plans", params=params)
+
+    json_result = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert len(json_result) == 3
+
+    params = {"admin": True}
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.get(f"/plans", params=params)
+
+    json_result = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert len(json_result) == 4
+
+
+@pytest.mark.anyio
 async def test_search_training_plan():
     trainer = "Abdulazeez trainer"
     plans = [
@@ -490,18 +635,22 @@ async def test_block_user():
         "blocked": False,
     }
 
+    ids = []
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.post("/plans", json=plan)
-    plan_id = response.json()["_id"]
+        ids.append(response.json()["_id"])
 
-    block = {"blocked": True}
+    to_block = [{"uid": id, "blocked": True} for id in ids]
+
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.patch(f"/plans/{plan_id}", json=block)
-
+        response = await ac.patch(f"/plans", json=to_block)
     assert response.status_code == status.HTTP_200_OK
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        plan = await app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": plan_id})
-    assert plan["blocked"] == True
+
+    for id in ids:
+        async with AsyncClient(app=app, base_url="http://test") as ac:
+            plan = await app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": id})
+
+            assert plan["blocked"] == True
 
 
 @pytest.mark.anyio
@@ -523,9 +672,9 @@ async def test_block_user_wrong_body():
         response = await ac.post("/plans", json=plan)
     plan_id = response.json()["_id"]
 
-    block = {}
+    to_block = {}
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.patch(f"/plans/{plan_id}", json=block)
+        response = await ac.patch(f"/plans", json=to_block)
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     async with AsyncClient(app=app, base_url="http://test") as ac:
@@ -535,7 +684,7 @@ async def test_block_user_wrong_body():
 
 @pytest.mark.anyio
 async def test_block_plan_doesnt_exist():
-    block = {"blocked": True}
+    block = [{"uid": "abc", "blocked": True}]
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.patch(f"/plans/abc", json=block)
+        response = await ac.patch(f"/plans", json=block)
     assert response.status_code == status.HTTP_404_NOT_FOUND
