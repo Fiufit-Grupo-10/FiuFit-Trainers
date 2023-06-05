@@ -246,7 +246,7 @@ async def test_obtain_created_plans_of_certain_trainer():
     assert response_2.status_code == 201
 
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response_3 = await ac.get(f"/plans/{trainer}")
+        response_3 = await ac.get(f"/trainers/{trainer}/plans")
 
     json_result = response_3.json()
 
@@ -321,7 +321,7 @@ async def test_get_trainer_plans_when_some_are_blocked():
 
     params = {"admin": False}
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get(f"/plans/{trainer_id}", params=params)
+        response = await ac.get(f"/trainers/{trainer_id}/plans", params=params)
 
     json_result = response.json()
     assert response.status_code == status.HTTP_200_OK
@@ -329,7 +329,7 @@ async def test_get_trainer_plans_when_some_are_blocked():
 
     params = {"admin": True}
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get(f"/plans/{trainer_id}", params=params)
+        response = await ac.get(f"/trainers/{trainer_id}/plans", params=params)
 
     json_result = response.json()
     assert response.status_code == status.HTTP_200_OK
