@@ -62,7 +62,7 @@ async def block_plan(plans: list[BlockTrainingPlan], request: Request):
         result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].update_one(
             {"_id": plan.uid}, {"$set": {"blocked": plan.blocked}}
         )
-
+        # If it errs some user may be blocked
         if result.modified_count == 0:
             raise HTTPException(
                 status_code=HTTP_404_NOT_FOUND,
@@ -70,11 +70,25 @@ async def block_plan(plans: list[BlockTrainingPlan], request: Request):
             )
 
 
-@router.get("/plans/{trainer_id}", response_model=list[TrainingPlan])
+# TODO(@JuanA): Add test
+@router.get("/plans/{plan_id}", response_model=TrainingPlan)
+async def get_training_plan(plan_id: str, request: Request):
+    plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one(
+        {"_id": plan_id}
+    )
+    if plan is not None:
+        return plan
+
+    raise HTTPException(
+        status.HTTP_404_NOT_FOUND, detail=f"Plan {plan_id} doesn't exist"
+    )
+
+
+@router.get("/trainers/{trainer_id}/plans", response_model=list[TrainingPlan])
 async def get_trainer_training_plans(
     trainer_id: str, request: Request, admin: bool = False
 ):
-    # May break if this is bigger than buffer
+    # May break if this is bigger than buffer (skip, limit)
     filters = []
     if not admin:
         filters.append({"blocked": False})
