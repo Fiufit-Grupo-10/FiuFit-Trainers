@@ -136,7 +136,7 @@ async def get_training_plans(
 
     if types is not None:
         filters.append({"training_types": {"$all": types}})
-
+    print(f"IS_ADMIN = {admin}")
     if not admin:
         filters.append({"blocked": False})
 
