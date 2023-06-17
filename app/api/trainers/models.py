@@ -154,3 +154,7 @@ class UpdateReview(BaseModel):
                 "score": 5,
             }
         }
+
+
+class UpdateFavourite(BaseModel):
+    training_id: str = Field(...)

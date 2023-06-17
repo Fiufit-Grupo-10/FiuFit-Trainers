@@ -234,3 +234,18 @@ async def get_training_plan_reviews(
     ]
     content = {"reviews": reviews}
     return JSONResponse(status_code=status.HTTP_200_OK, content=content)
+
+
+@router.post("/users/{user_id}/training/favourites")
+async def add_favourite(user_id: str, request: Request):
+    pass
+
+
+@router.get("/users/{user_id}/training/favourites", response_model=TrainingPlan)
+async def get_user_favourite_trainings(user_id: str, request: Request):
+    pass
+
+
+@router.delete("/users/{user_id}/training/favourites")
+async def delete_user_favourite_training(user_id: str, request: Request):
+    pass
