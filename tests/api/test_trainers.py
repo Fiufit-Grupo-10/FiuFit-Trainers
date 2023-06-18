@@ -769,19 +769,16 @@ async def test_user_deletes_favourite_from_plan():
         response = await ac.post("/plans", json=plan)
         id = response.json()["_id"]
 
-
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.delete(
-            f"/users/user_id/trainings/favourites/{id}"
-        )
-        
+        response = await ac.delete(f"/users/user_id/trainings/favourites/{id}")
+
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
     async with AsyncClient(app=app, base_url="http://test") as ac:
         plan = await app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": id})
         assert plan["favourited_by"] == []
 
-        
+
 @pytest.mark.anyio
 async def test_user_tries_to_delete_nonexisten_favourite_from_plan():
     to_favourite = {"training_id": "abc"}
