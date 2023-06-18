@@ -45,6 +45,7 @@ class TrainingPlan(BaseModel):
     goals: list = Field(...)
     duration: int = Field(...)
     blocked: bool = Field(default=False)
+    favourited_by: list[str] = Field(default=[])
 
     class Config:
         allow_population_by_field_name = True
@@ -66,6 +67,7 @@ class TrainingPlan(BaseModel):
                 "duration": 90,
                 "reviews": None,
                 "blocked": False,
+                "favourited_by": ["7ca0fa95-af47-40b4-8e39-2fae5ee2667a" ""],
             }
         }
 
@@ -152,5 +154,17 @@ class UpdateReview(BaseModel):
             "example": {
                 "review": "Updated review",
                 "score": 5,
+            }
+        }
+
+
+class UpdateFavourite(BaseModel):
+    training_id: str = Field(...)
+
+    class Config:
+        allow_population_by_field_name = True
+        schema_extra = {
+            "example": {
+                "training_id": "7ca0fa95-af47-40b4-8e39-2fae5ee2667a",
             }
         }

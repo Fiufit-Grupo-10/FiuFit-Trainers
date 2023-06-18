@@ -10,6 +10,7 @@ from app.api.trainers.models import (
     ReviewResponse,
     ReviewMeanResponse,
     TrainingPlan,
+    UpdateFavourite,
     UpdateReview,
     UpdateTrainingPlan,
 )
@@ -234,3 +235,55 @@ async def get_training_plan_reviews(
     ]
     content = {"reviews": reviews}
     return JSONResponse(status_code=status.HTTP_200_OK, content=content)
+
+
+@router.post("/users/{user_id}/trainings/favourites")
+async def add_favourite(user_id: str, favourite: UpdateFavourite, request: Request):
+    result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].update_one(
+        {"_id": favourite.training_id}, {"$push": {"favourited_by": user_id}}
+    )
+    if result.modified_count == 1:
+        updated_plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one(
+            {"_id": favourite.training_id}
+        )
+        if updated_plan is not None:
+            return
+
+    raise HTTPException(
+        status_code=HTTP_404_NOT_FOUND,
+        detail=f"Training plan {favourite.training_id} not found",
+    )
+
+
+@router.get("/users/{user_id}/trainings/favourites", response_model=list[TrainingPlan])
+async def get_user_favourite_trainings(
+    user_id: str,
+    request: Request,
+    skip: int = 0,
+    limit: int = 25,
+):
+    return [
+        plan
+        async for plan in request.app.mongodb[TRAININGS_COLLECTION_NAME].find(
+            filter={"favourited_by": {"$all": [user_id]}}, skip=skip, limit=limit
+        )
+    ]
+
+
+@router.delete("/users/{user_id}/trainings/favourites/{plan_id}")
+async def delete_user_favourite_training(user_id: str, plan_id: str, request: Request):
+    result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].update_one(
+        {"_id": plan_id}, {"$pull": {"favourited_by": user_id}}
+    )
+
+    if result.modified_count == 1:
+        updated_plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one(
+            {"_id": plan_id}
+        )
+        if updated_plan is not None:
+            return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content=None)
+
+    raise HTTPException(
+        status_code=HTTP_404_NOT_FOUND,
+        detail=f"Training plan {plan_id} not found",
+    )

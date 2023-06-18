@@ -50,6 +50,7 @@ async def test_update_existing_plan():
         "goals": ["plank: one minute"],
         "duration": 90,
         "reviews": None,
+        "favourited_by": [],
     }
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.post("/plans", json=plan)
@@ -84,6 +85,7 @@ async def test_update_existing_plan():
         "goals": ["plank: two minute"],
         "duration": 30,
         "blocked": False,
+        "favourited_by": [],
     }
 
     assert current_plan == expected_plan
@@ -100,6 +102,7 @@ async def test_update_with_empty_body():
         "goals": ["plank: one minute"],
         "duration": 90,
         "blocked": False,
+        "favourited_by": [],
     }
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.post("/plans", json=plan)
@@ -128,6 +131,7 @@ async def test_update_with_empty_body():
         "goals": ["plank: one minute"],
         "duration": 90,
         "blocked": False,
+        "favourited_by": [],
     }
 
     assert current_plan == expected_plan
@@ -197,6 +201,7 @@ async def test_obtain_created_plans_of_certain_trainer():
         "duration": 30,
         "reviews": None,
         "blocked": False,
+        "favourited_by": [],
     }
 
     plan_2 = {
@@ -209,6 +214,7 @@ async def test_obtain_created_plans_of_certain_trainer():
         "duration": 120,
         "reviews": None,
         "blocked": False,
+        "favourited_by": [],
     }
 
     plan_1_ = {
@@ -221,6 +227,7 @@ async def test_obtain_created_plans_of_certain_trainer():
         "goals": ["plank: one minute"],
         "duration": 30,
         "blocked": False,
+        "favourited_by": [],
     }
 
     plan_2_ = {
@@ -233,6 +240,7 @@ async def test_obtain_created_plans_of_certain_trainer():
         "goals": ["plank: one minute"],
         "duration": 120,
         "blocked": False,
+        "favourited_by": [],
     }
     expected = [plan_1_, plan_2_]
 
@@ -688,3 +696,159 @@ async def test_block_plan_doesnt_exist():
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.patch(f"/plans", json=block)
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.anyio
+async def test_block_plan_doesnt_exist():
+    block = [{"uid": "abc", "blocked": True}]
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.patch(f"/plans", json=block)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.anyio
+async def test_users_adds_plan_as_favourite():
+    plan = {
+        "trainer": "Abdulazeez trainer",
+        "title": "Pilates training plan",
+        "description": "A pilates training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 30,
+        "reviews": None,
+        "blocked": False,
+        "favourited_by": [],
+    }
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post("/plans", json=plan)
+        id = response.json()["_id"]
+
+    to_favourite = {"training_id": id}
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post(
+            f"/users/user_id/trainings/favourites", json=to_favourite
+        )
+    assert response.status_code == status.HTTP_200_OK
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        plan = await app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": id})
+        assert plan["favourited_by"][0] == "user_id"
+
+
+@pytest.mark.anyio
+async def test_users_tries_to_add_nonexisting_plan_as_favourite():
+    to_favourite = {"training_id": "abc"}
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post(
+            f"/users/user_id/trainings/favourites", json=to_favourite
+        )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.anyio
+async def test_user_deletes_favourite_from_plan():
+    plan = {
+        "trainer": "Abdulazeez trainer",
+        "title": "Pilates training plan",
+        "description": "A pilates training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "media": ["link-to-image", "link-to-video"],
+        "goals": ["plank: one minute"],
+        "duration": 30,
+        "reviews": None,
+        "blocked": False,
+        "favourited_by": ["user_id"],
+    }
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post("/plans", json=plan)
+        id = response.json()["_id"]
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.delete(f"/users/user_id/trainings/favourites/{id}")
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        plan = await app.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": id})
+        assert plan["favourited_by"] == []
+
+
+@pytest.mark.anyio
+async def test_user_tries_to_delete_nonexisten_favourite_from_plan():
+    to_favourite = {"training_id": "abc"}
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post(
+            f"/users/user_id/trainings/favourites", json=to_favourite
+        )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.anyio
+async def test_get_user_favourite_plans():
+    trainer = "Abdulazeez trainer"
+    plans = [
+        {
+            "trainer": trainer,
+            "title": "Pilates training plan",
+            "description": "A pilates training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 30,
+            "reviews": None,
+            "favourited_by": ["user_id"],
+        },
+        {
+            "trainer": trainer,
+            "title": "Crossfit training plan",
+            "description": "A crossfit training plan",
+            "difficulty": "intermediate",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 120,
+            "reviews": None,
+            "favourited_by": ["user_id"],
+        },
+        {
+            "trainer": trainer,
+            "title": "Pilates training plan",
+            "description": "A pilates training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 30,
+            "favourited_by": [],
+        },
+        {
+            "trainer": trainer,
+            "title": "Crossfit training plan",
+            "description": "A crossfit training plan",
+            "difficulty": "beginner",
+            "training_types": ["cardio"],
+            "media": ["link-to-image", "link-to-video"],
+            "goals": ["plank: one minute"],
+            "duration": 120,
+            "favourited_by": ["user_id"],
+        },
+    ]
+
+    for plan in plans:
+        async with AsyncClient(app=app, base_url="http://test") as ac:
+            response = await ac.post("/plans", json=plan)
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.get("/users/user_id/trainings/favourites")
+
+    json_result = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert len(json_result) == 3
