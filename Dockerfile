@@ -19,4 +19,4 @@ ENV MONGO_URL $MONGO_URL
 
 EXPOSE 8080
 
-CMD ["uvicorn", "app.main:app", "--host=0.0.0.0", "--port=80"]
+CMD ["ddtrace-run", "uvicorn", "app.main:app", "--host=0.0.0.0", "--port=80"]
