@@ -17,6 +17,8 @@ structlog_processors = [
     structlog.processors.JSONRenderer(),
 ]
 
+DEV_ENV = os.getenv("DEV", "false").lower()
+
 def get_processors() -> Iterable[Processor]:
     timestamper = structlog.processors.TimeStamper(fmt="iso", utc=True)
     processors = [
@@ -31,9 +33,7 @@ def get_processors() -> Iterable[Processor]:
         structlog.processors.dict_tracebacks,
         structlog.processors.JSONRenderer(),
     ]
-    var = os.getenv("DEVLOG")
-    print(f"{var}")
-    if os.getenv('DEVLOG', 'false').lower() == 'true':
+    if DEV_ENV == "false":
         processors += json_processors
     else:
         processors += [structlog.dev.ConsoleRenderer()]
