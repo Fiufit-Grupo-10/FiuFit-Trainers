@@ -774,3 +774,41 @@ async def test_fail_to_delete_favourite_plan_not_found():
         response = await ac.delete(f"/users/user_id/trainings/favourites/{id}")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+
+@pytest.mark.anyio
+async def test_get_trainer_plan():
+    plan = {
+        "trainer": "Abdulazeez trainer",
+        "title": "Pilates training plan",
+        "description": "A pilates training plan",
+        "difficulty": "beginner",
+        "training_types": ["cardio"],
+        "goals": ["plank: one minute"],
+        "duration": 30,
+        "blocked": False,
+        "favourited_by": ["user_id"],
+    }
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.post("/plans", json=plan)
+        id = response.json()["_id"]
+
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.get(f"/plans/{id}")
+
+    assert response.status_code == status.HTTP_200_OK
+    got = response.json()
+    plan["_id"] = id
+    assert got == plan
+
+
+@pytest.mark.anyio
+async def test_get_trainer_plan_with_nonexistent_plan_id():
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        response = await ac.get("/plans/abc")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    

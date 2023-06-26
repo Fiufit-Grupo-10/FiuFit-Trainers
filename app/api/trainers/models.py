@@ -43,7 +43,6 @@ class TrainingPlan(BaseModel):
                     }
                 ],
                 "duration": 90,
-                "reviews": None,
                 "blocked": False,
                 "favourited_by": ["7ca0fa95-af47-40b4-8e39-2fae5ee2667a" ""],
             }

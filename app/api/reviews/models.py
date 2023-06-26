@@ -47,7 +47,7 @@ class ReviewResponse(BaseModel):
         }
 
 
-class ReviewMeanResponse(BaseModel):
+class ReviewAverageScoreResponse(BaseModel):
     mean: float = Field(...)
 
     class Config:
