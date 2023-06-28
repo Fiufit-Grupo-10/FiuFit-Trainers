@@ -51,4 +51,4 @@ async def get_training_plan_reviews(
     limit: int = 25,
 ):
     content = await crud.get_reviews(request, plan_id, skip, limit)
-    return JSONResponse(status_code=status.HTTP_200_OK, content=content)
+    return content
