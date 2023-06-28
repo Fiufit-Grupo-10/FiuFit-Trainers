@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from starlette import status
 from app.api.reviews import crud
 from app.config import config
+
 router = APIRouter(tags=["reviews"])
 
 
@@ -25,7 +26,7 @@ async def create_review(review: Review, request: Request):
         metrics = await get_metrics(request, review.plan_id)
         if metrics is not None:
             await MetricsService(metrics).send()
-        
+
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_review)
 
 

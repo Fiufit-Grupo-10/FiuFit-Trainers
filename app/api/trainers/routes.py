@@ -11,6 +11,7 @@ from app.api.trainers.models import (
 )
 from app.config import config
 from app.api.metrics.service import MetricsService, get_metrics
+
 router = APIRouter(tags=["plans"])
 
 
@@ -97,7 +98,6 @@ async def add_favourite(user_id: str, favourite: UpdateFavourite, request: Reque
         metrics = await get_metrics(request, favourite.training_id)
         if metrics is not None:
             await MetricsService(metrics).send()
-
 
 
 @router.get("/users/{user_id}/trainings/favourites", response_model=list[TrainingPlan])

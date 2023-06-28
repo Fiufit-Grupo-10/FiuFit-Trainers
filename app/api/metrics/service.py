@@ -13,8 +13,10 @@ class Metrics(BaseModel):
     review_counter: int = Field(default=0)
     review_average: float = Field(default=0.0)
 
-class MetricsService():
+
+class MetricsService:
     metrics: Metrics
+
     def __init__(self, metrics: Metrics):
         self.metrics = metrics
 
@@ -24,8 +26,7 @@ class MetricsService():
             # TODO: Log
             await client.put(url, json=jsonable_encoder(self.metrics))
 
-                
-        
+
 async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
     db = r.app.mongodb
     pipeline = [
@@ -51,7 +52,7 @@ async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
 
     favourite_counter = len(plan["favourited_by"])
     return Metrics(
-        plan_id = plan_id,
+        plan_id=plan_id,
         favourite_counter=favourite_counter,
         review_counter=reviews_counter,
         review_average=review_average,

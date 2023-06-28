@@ -45,6 +45,7 @@ async def test_get_reviews(test_app):
     body = response.json()
     assert len(body["reviews"]) == 3
 
+
 @pytest.mark.anyio
 async def test_get_average_score(test_app):
     review = {
@@ -72,7 +73,7 @@ async def test_get_average_score(test_app):
 
     body = response.json()
     want = 2.0
-    assert  want == pytest.approx(body["mean"])
+    assert want == pytest.approx(body["mean"])
 
 
 @pytest.mark.anyio
