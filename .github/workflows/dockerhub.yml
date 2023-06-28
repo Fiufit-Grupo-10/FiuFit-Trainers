@@ -10,7 +10,8 @@ on:
       - docker-compose.yml
     types:
       - closed
-  workflow_run:
+  workflow_dispatch:
+    
   
 jobs:
   on-success:
