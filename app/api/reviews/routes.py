@@ -39,8 +39,7 @@ async def get_plan_average_score(
     plan_id: str,
     request: Request,
 ):
-    average = await crud.get_average_score(request, plan_id)
-    return JSONResponse(status_code=status.HTTP_200_OK, content=average)
+    return await crud.get_average_score(request, plan_id)
 
 
 @router.get("/reviews/{plan_id}", response_model=ReviewResponse)

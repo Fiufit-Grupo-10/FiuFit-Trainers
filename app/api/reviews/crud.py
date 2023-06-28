@@ -30,14 +30,14 @@ async def get_reviews(
     r: Request, plan_id: str, skip: int, limit: int
 ) -> ReviewResponse:
     db = r.app.mongodb
-    return ReviewResponse(
-        reviews=[
-            plan
-            async for plan in db[REVIEWS_COLLECTION_NAME].find(
-                filter={"plan_id": plan_id}, skip=skip, limit=limit
-            )
-        ]
-    )
+    reviews = [
+        plan
+        async for plan in db[REVIEWS_COLLECTION_NAME].find(
+            filter={"plan_id": plan_id}, skip=skip, limit=limit
+        )
+    ]
+
+    return ReviewResponse(reviews=reviews)
 
 
 async def get_average_score(r: Request, plan_id: str) -> ReviewAverageScoreResponse:
