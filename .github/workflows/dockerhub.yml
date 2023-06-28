@@ -1,9 +1,17 @@
 name: Docker Hub Upload Workflow
 on:
+  pull_request:
+    branches:
+      - main
+    paths: 
+      - cmd/**
+      - internal/**
+      - Dockerfile
+      - docker-compose.yml
+    types:
+      - closed
   workflow_run:
-    workflows: [Python CI]
-    types: [completed]
-
+  
 jobs:
   on-success:
     runs-on: ubuntu-latest
