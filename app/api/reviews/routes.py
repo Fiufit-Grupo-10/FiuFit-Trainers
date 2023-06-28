@@ -7,7 +7,6 @@ from app.api.reviews.models import (
 )
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse
-from starlette import status
 from app.api.reviews import crud
 from app.config import config
 

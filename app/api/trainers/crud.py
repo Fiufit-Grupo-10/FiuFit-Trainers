@@ -1,6 +1,5 @@
 from typing import Tuple
-from fastapi import Request, HTTPException
-from starlette import status
+from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from app.config.database import TRAININGS_COLLECTION_NAME
 from app.api.trainers.models import (
