@@ -342,7 +342,7 @@ async def test_get_trainer_plans_when_some_are_blocked():
     assert response.status_code == status.HTTP_200_OK
     assert len(json_result) == 4
 
-    
+
 @pytest.mark.anyio
 async def test_search_training_plan_by_difficulty():
     trainer = "Abdulazeez trainer"
@@ -776,7 +776,6 @@ async def test_fail_to_delete_favourite_plan_not_found():
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-
 @pytest.mark.anyio
 async def test_get_trainer_plan():
     plan = {
@@ -810,5 +809,3 @@ async def test_get_trainer_plan_with_nonexistent_plan_id():
         response = await ac.get("/plans/abc")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    

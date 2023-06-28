@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, status, Query
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND
-from app.config.database import TRAININGS_COLLECTION_NAME
 from app.api.trainers import crud
 from app.api.trainers.models import (
     BlockTrainingPlan,
@@ -42,7 +41,6 @@ async def block_plan(plans: list[BlockTrainingPlan], request: Request):
         )
 
 
-# TODO(@JuanA): Add test
 @router.get("/plans/{plan_id}", response_model=TrainingPlan)
 async def get_plan(plan_id: str, request: Request):
     plan = await crud.get_plan(request, plan_id)
@@ -106,7 +104,10 @@ async def get_user_favourite_plans(
     return await crud.get_user_favourite_plans(request, user_id, skip, limit)
 
 
-@router.delete("/users/{user_id}/trainings/favourites/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/users/{user_id}/trainings/favourites/{plan_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_user_favourite_plan(user_id: str, plan_id: str, request: Request):
     deleted = await crud.delete_user_favourite_plan(request, user_id, plan_id)
     if not deleted:

@@ -7,17 +7,20 @@ from structlog.types import Processor
 
 DEFAULT_LEVEL = "INFO"
 LOGGER_NAME = "Trainings"
+
+
 def get_log_level() -> int:
     level = os.getenv("LOG_LEVEL", DEFAULT_LEVEL)
     return logging.getLevelName(level)
 
-                         
+
 structlog_processors = [
     structlog.processors.dict_tracebacks,
     structlog.processors.JSONRenderer(),
 ]
 
 DEV_ENV = os.getenv("DEV", "false").lower()
+
 
 def get_processors() -> Iterable[Processor]:
     timestamper = structlog.processors.TimeStamper(fmt="iso", utc=True)
@@ -37,10 +40,10 @@ def get_processors() -> Iterable[Processor]:
         processors += json_processors
     else:
         processors += [structlog.dev.ConsoleRenderer()]
-        
+
     return processors
-    
-    
+
+
 structlog.configure(
     processors=get_processors(),
     wrapper_class=structlog.make_filtering_bound_logger(get_log_level()),

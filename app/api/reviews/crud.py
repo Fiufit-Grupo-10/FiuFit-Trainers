@@ -1,4 +1,9 @@
-from app.api.reviews.models import Review, ReviewAverageScoreResponse, ReviewResponse, UpdateReview
+from app.api.reviews.models import (
+    Review,
+    ReviewAverageScoreResponse,
+    ReviewResponse,
+    UpdateReview,
+)
 from app.config.database import REVIEWS_COLLECTION_NAME, TRAININGS_COLLECTION_NAME
 from fastapi.encoders import jsonable_encoder
 from fastapi import Request
@@ -35,16 +40,14 @@ async def get_reviews(
     )
 
 
-async def get_average_score(
-    r: Request, plan_id: str
-) -> ReviewAverageScoreResponse:
+async def get_average_score(r: Request, plan_id: str) -> ReviewAverageScoreResponse:
     db = r.app.mongodb
     pipeline = [
         {"$match": {"plan_id": plan_id}},
         {"$group": {"_id": None, "mean": {"$avg": "$score"}}},
     ]
 
-    cursor = await db[REVIEWS_COLLECTION_NAME].aggregate(pipeline)
+    cursor = db[REVIEWS_COLLECTION_NAME].aggregate(pipeline)
     current_score = 0
     async for score in cursor:
         current_score = score["mean"]
@@ -52,7 +55,9 @@ async def get_average_score(
     return ReviewAverageScoreResponse(mean=current_score)
 
 
-async def update_review(r: Request, review: UpdateReview, review_id: str) -> UpdateReview | None:
+async def update_review(
+    r: Request, review: UpdateReview, review_id: str
+) -> UpdateReview | None:
     db = r.app.mongodb
     updated_review = {k: v for k, v in review.dict().items() if v is not None}
 

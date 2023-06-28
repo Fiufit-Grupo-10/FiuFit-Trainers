@@ -9,12 +9,13 @@ from ddtrace import config
 
 import asyncio
 
-config.fastapi['service_name'] = 'trainings-service'
+config.fastapi["service_name"] = "trainings-service"
 
 app = FastAPI()
 
 if DEV_ENV == "true":
     app.add_middleware(TraceMiddleware)
+
 
 @app.on_event("startup")
 async def startup_db_client():

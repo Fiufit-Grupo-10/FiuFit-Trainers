@@ -28,7 +28,7 @@ async def update_review(review_id: str, review: UpdateReview, request: Request):
     response = await crud.update_review(request, review, review_id)
     if response is not None:
         return response
-    
+
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail=f"Review {review_id} not found"
     )

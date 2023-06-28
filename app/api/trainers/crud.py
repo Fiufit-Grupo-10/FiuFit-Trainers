@@ -96,6 +96,7 @@ async def get_user_favourite_plans(
         )
     ]
 
+
 async def delete_user_favourite_plan(r: Request, user_id: str, plan_id: str) -> bool:
     db = r.app.mongodb
     result = await db[TRAININGS_COLLECTION_NAME].update_one(
@@ -103,9 +104,7 @@ async def delete_user_favourite_plan(r: Request, user_id: str, plan_id: str) -> 
     )
 
     if result.modified_count == 1:
-        updated_plan = await db[TRAININGS_COLLECTION_NAME].find_one(
-            {"_id": plan_id}
-        )
+        updated_plan = await db[TRAININGS_COLLECTION_NAME].find_one({"_id": plan_id})
         if updated_plan is not None:
             return True
     return False
@@ -128,9 +127,7 @@ async def add_favourite(r: Request, user_id: str, favourite: UpdateFavourite) ->
 
 async def delete_plan(r: Request, plan_id: str) -> bool:
     db = r.app.mongodb
-    delete_result = await db[TRAININGS_COLLECTION_NAME].delete_one(
-        {"_id": plan_id}
-    )
+    delete_result = await db[TRAININGS_COLLECTION_NAME].delete_one({"_id": plan_id})
 
     if delete_result.deleted_count != 1:
         return False
