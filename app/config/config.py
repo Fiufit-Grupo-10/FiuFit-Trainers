@@ -20,7 +20,7 @@ structlog_processors = [
 ]
 
 DEV_ENV = os.getenv("DEV", "false").lower()
-
+METRICS_URL = os.getenv("METRICS_SERVICE_URL", None)
 
 def get_processors() -> Iterable[Processor]:
     timestamper = structlog.processors.TimeStamper(fmt="iso", utc=True)

@@ -9,7 +9,8 @@ from app.api.trainers.models import (
     UpdateFavourite,
     UpdateTrainingPlan,
 )
-
+from app.config import config
+from app.api.metrics.service import MetricsService, get_metrics
 router = APIRouter(tags=["plans"])
 
 
@@ -92,6 +93,11 @@ async def add_favourite(user_id: str, favourite: UpdateFavourite, request: Reque
             status_code=HTTP_404_NOT_FOUND,
             detail=f"Training plan {favourite.training_id} not found",
         )
+    if config.METRICS_URL is not None:
+        metrics = await get_metrics(request, favourite.training_id)
+        if metrics is not None:
+            await MetricsService(metrics).send()
+
 
 
 @router.get("/users/{user_id}/trainings/favourites", response_model=list[TrainingPlan])
@@ -115,3 +121,7 @@ async def delete_user_favourite_plan(user_id: str, plan_id: str, request: Reques
             status_code=HTTP_404_NOT_FOUND,
             detail=f"Training plan {plan_id} not found",
         )
+    if config.METRICS_URL is not None:
+        metrics = await get_metrics(request, plan_id)
+        if metrics is not None:
+            await MetricsService(metrics).send()

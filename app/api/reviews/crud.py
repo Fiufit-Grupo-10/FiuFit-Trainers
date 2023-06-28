@@ -1,3 +1,4 @@
+from pydantic import BaseModel, Field
 from app.api.reviews.models import (
     Review,
     ReviewAverageScoreResponse,
