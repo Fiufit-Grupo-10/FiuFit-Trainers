@@ -1,56 +1,33 @@
 from fastapi import APIRouter, HTTPException, Request, status, Query
-from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from starlette.status import HTTP_404_NOT_FOUND
-from app.config.database import TRAININGS_COLLECTION_NAME, REVIEWS_COLLECTION_NAME
+from app.api.trainers import crud
 from app.api.trainers.models import (
     BlockTrainingPlan,
     Difficulty,
-    Review,
-    ReviewResponse,
-    ReviewMeanResponse,
     TrainingPlan,
     UpdateFavourite,
-    UpdateReview,
     UpdateTrainingPlan,
 )
+from app.config import config
+from app.api.metrics.service import MetricsService, get_metrics
+from app.config.config import logger
+
 
 router = APIRouter(tags=["plans"])
 
 
 @router.post("/plans", response_model=TrainingPlan)
-async def create_training_plan(plan: TrainingPlan, request: Request):
-    plan = jsonable_encoder(plan)
-    new_plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].insert_one(plan)
-    created_plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one(
-        {"_id": new_plan.inserted_id}
-    )
+async def create_plan(plan: TrainingPlan, request: Request):
+    created_plan = await crud.create_plan(request, plan)
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_plan)
 
 
 @router.put("/plans/{plan_id}", response_model=TrainingPlan)
-async def modify_training_plan(
-    plan_id: str, plan: UpdateTrainingPlan, request: Request
-):
-    updated_plan = {k: v for k, v in plan.dict().items() if v is not None}
-
-    if len(updated_plan) > 0:
-        result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].update_one(
-            {"_id": plan_id}, {"$set": updated_plan}
-        )
-
-        if result.modified_count == 1:
-            updated_plan = await request.app.mongodb[
-                TRAININGS_COLLECTION_NAME
-            ].find_one({"_id": plan_id})
-            if updated_plan is not None:
-                return updated_plan
-
-    current_plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one(
-        {"_id": plan_id}
-    )
-    if current_plan is not None:
-        return current_plan
+async def update_plan(plan_id: str, plan: UpdateTrainingPlan, request: Request):
+    updated_plan = await crud.update_plan(request, plan, plan_id)
+    if updated_plan is not None:
+        return updated_plan
 
     raise HTTPException(
         status_code=HTTP_404_NOT_FOUND, detail=f"Training plan {plan_id} not found"
@@ -59,24 +36,19 @@ async def modify_training_plan(
 
 @router.patch("/plans")
 async def block_plan(plans: list[BlockTrainingPlan], request: Request):
-    for plan in plans:
-        result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].update_one(
-            {"_id": plan.uid}, {"$set": {"blocked": plan.blocked}}
+    plan_id, ok = await crud.block_plan(request, plans)
+    # If it errs some user may be blocked
+    if not ok:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=f"Training plan {plan_id} couldn't be found",
         )
-        # If it errs some user may be blocked
-        if result.modified_count == 0:
-            raise HTTPException(
-                status_code=HTTP_404_NOT_FOUND,
-                detail=f"Training plan {plan.uid} couldn't be found",
-            )
 
 
-# TODO(@JuanA): Add test
 @router.get("/plans/{plan_id}", response_model=TrainingPlan)
-async def get_training_plan(plan_id: str, request: Request):
-    plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one(
-        {"_id": plan_id}
-    )
+async def get_plan(plan_id: str, request: Request):
+    plan = await crud.get_plan(request, plan_id)
+
     if plan is not None:
         return plan
 
@@ -89,31 +61,13 @@ async def get_training_plan(plan_id: str, request: Request):
 async def get_trainer_training_plans(
     trainer_id: str, request: Request, admin: bool = False
 ):
-    # May break if this is bigger than buffer (skip, limit)
-    filters = []
-    if not admin:
-        filters.append({"blocked": False})
-
-    query = None
-    if filters:
-        filters.append({"trainer": trainer_id})
-        query = {"$and": filters}
-    else:
-        query = {"trainer": trainer_id}
-
-    return [
-        plan
-        async for plan in request.app.mongodb[TRAININGS_COLLECTION_NAME].find(query)
-    ]
+    return await crud.get_trainer_plans(request, trainer_id, admin)
 
 
 @router.delete("/plans/{trainer_id}/{plan_id}")
-async def delete_trainer_plan(plan_id: str, request: Request):
-    delete_result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].delete_one(
-        {"_id": plan_id}
-    )
-
-    if delete_result.deleted_count != 1:
+async def delete_plan(plan_id: str, request: Request):
+    deleted = await crud.delete_plan(request, plan_id)
+    if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"plan {plan_id} doesn't exist",
@@ -123,7 +77,7 @@ async def delete_trainer_plan(plan_id: str, request: Request):
 
 
 @router.get("/plans", response_model=list[TrainingPlan])
-async def get_training_plans(
+async def get_plans(
     request: Request,
     skip: int = 0,
     limit: int = 25,
@@ -131,159 +85,47 @@ async def get_training_plans(
     difficulty: Difficulty | None = Query(default=None),
     types: list[str] | None = Query(default=None),
 ):
-    filters = []
-    if difficulty is not None:
-        filters.append({"difficulty": difficulty})
-
-    if types is not None:
-        filters.append({"training_types": {"$all": types}})
-
-    if not admin:
-        filters.append({"blocked": False})
-
-    query = None
-    if filters:
-        query = {"$and": filters}
-
-    return [
-        plan
-        async for plan in request.app.mongodb[TRAININGS_COLLECTION_NAME].find(
-            filter=query, skip=skip, limit=limit
-        )
-    ]
-
-
-@router.post("/reviews", response_model=Review | dict)
-async def create_review(review: Review, request: Request):
-    existing_review = await request.app.mongodb[REVIEWS_COLLECTION_NAME].find_one(
-        {"$and": [{"plan_id": review.plan_id}, {"user_id": review.user_id}]}
-    )
-    if existing_review is None:
-        review = jsonable_encoder(review)
-        new_review = await request.app.mongodb[REVIEWS_COLLECTION_NAME].insert_one(
-            review
-        )
-        created_review = await request.app.mongodb[REVIEWS_COLLECTION_NAME].find_one(
-            {"_id": new_review.inserted_id}
-        )
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_review)
-
-    return JSONResponse(
-        status_code=status.HTTP_409_CONFLICT, content={"error": "Review already exists"}
-    )
-
-
-@router.put("/reviews/{review_id}", response_model=UpdateReview)
-async def modify_review(review_id: str, plan: UpdateReview, request: Request):
-    updated_review = {k: v for k, v in plan.dict().items() if v is not None}
-
-    if len(updated_review) > 0:
-        result = await request.app.mongodb[REVIEWS_COLLECTION_NAME].update_one(
-            {"_id": review_id}, {"$set": updated_review}
-        )
-
-        if result.modified_count == 1:
-            updated_review = await request.app.mongodb[
-                TRAININGS_COLLECTION_NAME
-            ].find_one({"_id": review_id})
-
-            if updated_review is not None:
-                return updated_review
-
-    current_review = await request.app.mongodb[REVIEWS_COLLECTION_NAME].find_one(
-        {"_id": review_id}
-    )
-
-    if current_review is not None:
-        return current_review
-
-    raise HTTPException(
-        status_code=HTTP_404_NOT_FOUND, detail=f"Review {review_id} not found"
-    )
-
-
-@router.get("/reviews/{plan_id}/mean", response_model=ReviewMeanResponse)
-async def get_training_plan_mean(
-    plan_id: str,
-    request: Request,
-):
-    pipeline = [
-        {"$match": {"plan_id": plan_id}},
-        {"$group": {"_id": None, "mean": {"$avg": "$score"}}},
-    ]
-    cursor = request.app.mongodb[REVIEWS_COLLECTION_NAME].aggregate(pipeline)
-
-    current_score = 0
-    async for score in cursor:
-        current_score = score["mean"]
-
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"mean": current_score})
-
-
-@router.get("/reviews/{plan_id}", response_model=ReviewResponse)
-async def get_training_plan_reviews(
-    plan_id: str,
-    request: Request,
-    skip: int = 0,
-    limit: int = 25,
-):
-    reviews = [
-        plan
-        async for plan in request.app.mongodb[REVIEWS_COLLECTION_NAME].find(
-            filter={"plan_id": plan_id}, skip=skip, limit=limit
-        )
-    ]
-    content = {"reviews": reviews}
-    return JSONResponse(status_code=status.HTTP_200_OK, content=content)
+    return await crud.get_plans(request, skip, limit, admin, difficulty, types)
 
 
 @router.post("/users/{user_id}/trainings/favourites")
 async def add_favourite(user_id: str, favourite: UpdateFavourite, request: Request):
-    result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].update_one(
-        {"_id": favourite.training_id}, {"$push": {"favourited_by": user_id}}
-    )
-    if result.modified_count == 1:
-        updated_plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one(
-            {"_id": favourite.training_id}
+    ok = await crud.add_favourite(request, user_id, favourite)
+    if not ok:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=f"Training plan {favourite.training_id} not found",
         )
-        if updated_plan is not None:
-            return
-
-    raise HTTPException(
-        status_code=HTTP_404_NOT_FOUND,
-        detail=f"Training plan {favourite.training_id} not found",
-    )
+    logger.info("Added favourite", user=user_id, plan=favourite.training_id)
+    if config.METRICS_URL is not None:
+        metrics = await get_metrics(request, favourite.training_id)
+        if metrics is not None:
+            await MetricsService(metrics).send()
 
 
 @router.get("/users/{user_id}/trainings/favourites", response_model=list[TrainingPlan])
-async def get_user_favourite_trainings(
+async def get_user_favourite_plans(
     user_id: str,
     request: Request,
     skip: int = 0,
     limit: int = 25,
 ):
-    return [
-        plan
-        async for plan in request.app.mongodb[TRAININGS_COLLECTION_NAME].find(
-            filter={"favourited_by": {"$all": [user_id]}}, skip=skip, limit=limit
+    return await crud.get_user_favourite_plans(request, user_id, skip, limit)
+
+
+@router.delete(
+    "/users/{user_id}/trainings/favourites/{plan_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_user_favourite_plan(user_id: str, plan_id: str, request: Request):
+    deleted = await crud.delete_user_favourite_plan(request, user_id, plan_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=f"Training plan {plan_id} not found",
         )
-    ]
-
-
-@router.delete("/users/{user_id}/trainings/favourites/{plan_id}")
-async def delete_user_favourite_training(user_id: str, plan_id: str, request: Request):
-    result = await request.app.mongodb[TRAININGS_COLLECTION_NAME].update_one(
-        {"_id": plan_id}, {"$pull": {"favourited_by": user_id}}
-    )
-
-    if result.modified_count == 1:
-        updated_plan = await request.app.mongodb[TRAININGS_COLLECTION_NAME].find_one(
-            {"_id": plan_id}
-        )
-        if updated_plan is not None:
-            return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content=None)
-
-    raise HTTPException(
-        status_code=HTTP_404_NOT_FOUND,
-        detail=f"Training plan {plan_id} not found",
-    )
+    logger.info("Deleted favourite", user=user_id, plan=plan_id)
+    if config.METRICS_URL is not None:
+        metrics = await get_metrics(request, plan_id)
+        if metrics is not None:
+            await MetricsService(metrics).send()

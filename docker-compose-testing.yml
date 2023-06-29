@@ -24,6 +24,7 @@ services:
   tests:
     build:
       context: .
+      dockerfile: Dockerfile.dev
     ports:
       - 8090:80
     volumes:
@@ -33,10 +34,9 @@ services:
  
     depends_on:   
       - mongodb
+      
     networks:
       - fiufit_network
-
-    command: pytest tests/
 
   ci-tests:
     build:

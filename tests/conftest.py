@@ -4,8 +4,6 @@ from starlette.testclient import TestClient
 from app.main import app
 from app.config.database import (
     DB_NAME,
-    REVIEWS_COLLECTION_NAME,
-    TRAININGS_COLLECTION_NAME,
 )
 
 
