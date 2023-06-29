@@ -10,7 +10,7 @@ import httpx
 
 class Metrics(BaseModel):
     plan_id: str = Field(...)
-    metric: str = Field(default="score")
+    metric_type: str = Field(default="score")
     favourite_counter: int = Field(default=0)
     review_counter: int = Field(default=0)
     review_average: float = Field(default=0.0)
@@ -26,7 +26,13 @@ class MetricsService:
         url = f"{METRICS_URL}metrics/trainings/{self.metrics.plan_id}"
         logger.info(f"Sendig metrics to {url}", metrics=self.metrics)
         async with httpx.AsyncClient() as client:
-            r = await client.put(url, json=jsonable_encoder(self.metrics))
+            metrics = {
+                "metric_type": self.metrics.metric_type,
+                "favourite_counter": self.metrics.favourite_counter,
+                "review_counter": self.metrics.review_counter,
+                "review_average": self.metrics.review_average
+            }
+            r = await client.put(url, json=metrics)
             if (
                 r.status_code is not HTTP_200_OK
                 or r.status_code is not HTTP_201_CREATED
