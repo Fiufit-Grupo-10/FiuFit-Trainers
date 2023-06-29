@@ -53,5 +53,4 @@ structlog.configure(
 )
 
 logger = structlog.getLogger(name=LOGGER_NAME)
-# logger = logging.getLogger("uvicorn")
 logger.info(f"METRICS_URL={METRICS_URL}")

@@ -43,6 +43,7 @@ async def block_plan(plans: list[BlockTrainingPlan], request: Request):
     plan_id, ok = await crud.block_plan(request, plans)
     # If it errs some user may be blocked
     if not ok:
+        logger.info("failed to block plan", plan=plan_id)
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
             detail=f"Training plan {plan_id} couldn't be found",
@@ -56,6 +57,7 @@ async def get_plan(plan_id: str, request: Request):
     if plan is not None:
         return plan
 
+    logger.info("couldn't get plan", plan=plan_id, error="not found")
     raise HTTPException(
         status.HTTP_404_NOT_FOUND, detail=f"Plan {plan_id} doesn't exist"
     )
@@ -72,6 +74,7 @@ async def get_trainer_training_plans(
 async def delete_plan(plan_id: str, request: Request):
     deleted = await crud.delete_plan(request, plan_id)
     if not deleted:
+        logger.info("failed to delete plan", plan=plan_id, error="not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"plan {plan_id} doesn't exist",
@@ -96,6 +99,12 @@ async def get_plans(
 async def add_favourite(user_id: str, favourite: UpdateFavourite, request: Request):
     ok = await crud.add_favourite(request, user_id, favourite)
     if not ok:
+        logger.info(
+            "failed to add favourite plan",
+            user=user_id,
+            plan=favourite.training_id,
+            error="not found",
+        )
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
             detail=f"Training plan {favourite.training_id} not found",
@@ -124,11 +133,12 @@ async def get_user_favourite_plans(
 async def delete_user_favourite_plan(user_id: str, plan_id: str, request: Request):
     deleted = await crud.delete_user_favourite_plan(request, user_id, plan_id)
     if not deleted:
+        logger.info("failed to remove favourite", plan=plan_id, error="not found")
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
             detail=f"Training plan {plan_id} not found",
         )
-    logger.info("Deleted favourite", user=user_id, plan=plan_id)
+    logger.info("removed favourite", user=user_id, plan=plan_id)
     if config.METRICS_URL is not None:
         metrics = await get_metrics(request, plan_id)
         if metrics is not None:

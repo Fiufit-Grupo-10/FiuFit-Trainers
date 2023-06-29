@@ -18,11 +18,12 @@ router = APIRouter(tags=["reviews"])
 async def create_review(review: Review, request: Request):
     created_review = await crud.create_review(request, review)
     if created_review is None:
+        logger.info("review already exist", plan=review.plan_id, user=review.user_id)
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={"error": "Review already exists"},
         )
-    logger.info("Created Review", plan=review.plan_id, user=review.user_id)
+    logger.info("created review", plan=review.plan_id, user=review.user_id)
     if config.METRICS_URL is not None:
         metrics = await get_metrics(request, review.plan_id)
         if metrics is not None:
@@ -42,6 +43,7 @@ async def update_review(review_id: str, review: UpdateReview, request: Request):
             if metrics is not None:
                 await MetricsService(metrics).send()
         return response
+
     logger.info("failed to update review", review=review_id)
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail=f"Review {review_id} not found"
