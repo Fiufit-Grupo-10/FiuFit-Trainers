@@ -38,7 +38,7 @@ class MetricsService:
                 r.status_code is not HTTP_200_OK
                 or r.status_code is not HTTP_201_CREATED
             ):
-                logger.info("Failed to send metrics")
+                logger.info("Failed to send metrics", status_code=r.status_code)
 
 
 async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
