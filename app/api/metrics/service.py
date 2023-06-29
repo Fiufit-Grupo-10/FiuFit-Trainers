@@ -24,7 +24,7 @@ class MetricsService:
 
     async def send(self):
         url = f"{METRICS_URL}metrics/trainings/{self.metrics.plan_id}"
-        await logger.info(f"Sendig metrics to {url}", metrics=self.metrics)
+        logger.info(f"Sendig metrics to {url}", metrics=self.metrics)
         async with httpx.AsyncClient() as client:
             metrics = {
                 "metric_type": self.metrics.metric_type,
@@ -70,7 +70,7 @@ async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
         "metrics",
         plan_id=plan_id,
         favourites=favourite_counter,
-        reviews_counter=reviews_cursor,
+        reviews_counter=reviews_counter,
         review_average=review_average,
     )
     return Metrics(
