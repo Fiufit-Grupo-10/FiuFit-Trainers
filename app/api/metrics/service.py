@@ -24,7 +24,7 @@ class MetricsService:
 
     async def send(self):
         url = f"{METRICS_URL}metrics/trainings/{self.metrics.plan_id}"
-        logger.info(f"Sendig metrics to {url}", metrics=self.metrics)
+
         async with httpx.AsyncClient() as client:
             metrics = {
                 "metric_type": self.metrics.metric_type,
@@ -32,6 +32,7 @@ class MetricsService:
                 "review_counter": self.metrics.review_counter,
                 "review_average": self.metrics.review_average,
             }
+            logger.info(f"Sendig metrics to {url}", metrics=metrics)
             r = await client.put(url, json=jsonable_encoder(metrics))
             if (
                 r.status_code is not HTTP_200_OK
