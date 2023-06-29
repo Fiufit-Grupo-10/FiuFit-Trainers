@@ -24,7 +24,7 @@ class MetricsService:
 
     async def send(self):
         url = f"{METRICS_URL}metrics/trainings/{self.metrics.plan_id}"
-        logger.info(f"Sendig metrics to {url}", metrics=self.metrics)
+        await logger.info(f"Sendig metrics to {url}", metrics=self.metrics)
         async with httpx.AsyncClient() as client:
             metrics = {
                 "metric_type": self.metrics.metric_type,
@@ -41,6 +41,7 @@ class MetricsService:
 
 
 async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
+    logger.info("getting metrics")
     db = r.app.mongodb
     pipeline = [
         {"$match": {"plan_id": plan_id}},
@@ -61,9 +62,17 @@ async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
 
     plan = await db.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": plan_id})
     if plan is None:
+        logger.info("plan is none")
         return None
 
     favourite_counter = len(plan["favourited_by"])
+    logger.info(
+        "metrics",
+        plan_id=plan_id,
+        favourites=favourite_counter,
+        reviews_counter=reviews_cursor,
+        review_average=review_average,
+    )
     return Metrics(
         plan_id=plan_id,
         favourite_counter=favourite_counter,

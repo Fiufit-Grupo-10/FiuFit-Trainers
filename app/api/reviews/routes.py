@@ -34,14 +34,15 @@ async def create_review(review: Review, request: Request):
 @router.put("/reviews/{review_id}", response_model=UpdateReview)
 async def update_review(review_id: str, review: UpdateReview, request: Request):
     response = await crud.update_review(request, review, review_id)
+    logger.info("updating review", review=review_id)
     if response is not None:
-        logger.info("Updated Review", review=review_id)
+        logger.info("review updated", review=review_id)
         if config.METRICS_URL is not None:
             metrics = await get_metrics(request, update_review.plan_id)
             if metrics is not None:
                 await MetricsService(metrics).send()
         return response
-
+    logger.info("failed to update review", review=review_id)
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail=f"Review {review_id} not found"
     )

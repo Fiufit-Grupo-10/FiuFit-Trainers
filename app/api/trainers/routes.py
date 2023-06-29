@@ -20,15 +20,19 @@ router = APIRouter(tags=["plans"])
 @router.post("/plans", response_model=TrainingPlan)
 async def create_plan(plan: TrainingPlan, request: Request):
     created_plan = await crud.create_plan(request, plan)
+    logger.info("creating training plan", id=plan.id, trainer=plan.trainer)
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_plan)
 
 
 @router.put("/plans/{plan_id}", response_model=TrainingPlan)
 async def update_plan(plan_id: str, plan: UpdateTrainingPlan, request: Request):
+    logger.info("updating training plan", id=plan_id)
     updated_plan = await crud.update_plan(request, plan, plan_id)
     if updated_plan is not None:
+        logger.info("updated training plan", id=plan_id)
         return updated_plan
 
+    logger.info("failed to update plan", id=plan_id, error="not found")
     raise HTTPException(
         status_code=HTTP_404_NOT_FOUND, detail=f"Training plan {plan_id} not found"
     )
