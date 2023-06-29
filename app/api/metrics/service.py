@@ -27,9 +27,11 @@ class MetricsService:
         logger.info(f"Sendig metrics to {url}", metrics=self.metrics)
         async with httpx.AsyncClient() as client:
             r = await client.put(url, json=jsonable_encoder(self.metrics))
-            if r.status_code is not HTTP_200_OK or r.status_code is not HTTP_201_CREATED:
+            if (
+                r.status_code is not HTTP_200_OK
+                or r.status_code is not HTTP_201_CREATED
+            ):
                 logger.info(f"Failed to send metrics")
-                        
 
 
 async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
