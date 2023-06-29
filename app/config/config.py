@@ -33,10 +33,10 @@ def get_processors() -> Iterable[Processor]:
         timestamper,
     ]
 
-    json_processors = [
-        structlog.processors.dict_tracebacks,
-        structlog.processors.JSONRenderer(),
-    ]
+    # json_processors = [
+    #     structlog.processors.dict_tracebacks,
+    #     structlog.processors.JSONRenderer(),
+    # ]
     # if DEV_ENV == "false":
     #     processors += json_processors
     # else:

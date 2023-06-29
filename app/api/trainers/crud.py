@@ -2,7 +2,6 @@ from typing import Tuple
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from app.config.database import TRAININGS_COLLECTION_NAME
-from app.config.config import logger
 from app.api.trainers.models import (
     BlockTrainingPlan,
     Difficulty,
