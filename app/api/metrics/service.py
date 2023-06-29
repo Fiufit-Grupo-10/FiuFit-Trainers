@@ -30,7 +30,7 @@ class MetricsService:
                 "metric_type": self.metrics.metric_type,
                 "favourite_counter": self.metrics.favourite_counter,
                 "review_counter": self.metrics.review_counter,
-                "review_average": self.metrics.review_average
+                "review_average": self.metrics.review_average,
             }
             r = await client.put(url, json=metrics)
             if (
