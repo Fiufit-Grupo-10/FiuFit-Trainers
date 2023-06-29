@@ -52,6 +52,6 @@ structlog.configure(
     cache_logger_on_first_use=False,
 )
 
-#logger = structlog.getLogger(name=LOGGER_NAME)
-logger = logging.getLogger("uvicorn")
-logger.debug(f"METRICS_URL={METRICS_URL}")
+logger = structlog.getLogger(name=LOGGER_NAME)
+# logger = logging.getLogger("uvicorn")
+logger.info(f"METRICS_URL={METRICS_URL}")
