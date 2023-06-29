@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from app.api.reviews import crud
 from app.config import config
+from app.config.config import logger
 
 router = APIRouter(tags=["reviews"])
 
@@ -21,6 +22,7 @@ async def create_review(review: Review, request: Request):
             status_code=status.HTTP_409_CONFLICT,
             content={"error": "Review already exists"},
         )
+    logger.info("Created Review", plan=review.plan_id, user=review.user_id)
     if config.METRICS_URL is not None:
         metrics = await get_metrics(request, review.plan_id)
         if metrics is not None:
@@ -33,6 +35,7 @@ async def create_review(review: Review, request: Request):
 async def update_review(review_id: str, review: UpdateReview, request: Request):
     response = await crud.update_review(request, review, review_id)
     if response is not None:
+        logger.info("Updated Review", review=review_id)
         if config.METRICS_URL is not None:
             metrics = await get_metrics(request, update_review.plan_id)
             if metrics is not None:

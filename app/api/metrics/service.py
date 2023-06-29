@@ -1,8 +1,10 @@
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
+from starlette.status import HTTP_200_OK, HTTP_201_CREATED
 from app.config.config import METRICS_URL
 from app.config.database import REVIEWS_COLLECTION_NAME, TRAININGS_COLLECTION_NAME
 from pydantic import BaseModel, Field
+from app.config.config import logger
 import httpx
 
 
@@ -22,9 +24,12 @@ class MetricsService:
 
     async def send(self):
         url = f"{METRICS_URL}/metrics/trainings/{self.metrics.plan_id}"
+        logger.info(f"Sendig metrics to {url}", metrics=self.metrics)
         async with httpx.AsyncClient() as client:
-            # TODO: Log
-            await client.put(url, json=jsonable_encoder(self.metrics))
+            r = await client.put(url, json=jsonable_encoder(self.metrics))
+            if r.status_code is not HTTP_200_OK or r.status_code is not HTTP_201_CREATED:
+                logger.info(f"Failed to send metrics")
+                        
 
 
 async def get_metrics(r: Request, plan_id: str) -> Metrics | None:

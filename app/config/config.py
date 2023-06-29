@@ -37,10 +37,10 @@ def get_processors() -> Iterable[Processor]:
         structlog.processors.dict_tracebacks,
         structlog.processors.JSONRenderer(),
     ]
-    if DEV_ENV == "false":
-        processors += json_processors
-    else:
-        processors += [structlog.dev.ConsoleRenderer()]
+    # if DEV_ENV == "false":
+    #     processors += json_processors
+    # else:
+    processors += [structlog.dev.ConsoleRenderer()]
 
     return processors
 
