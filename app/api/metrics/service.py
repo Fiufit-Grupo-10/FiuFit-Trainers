@@ -26,7 +26,6 @@ class MetricsService:
         url = f"{METRICS_URL}metrics/trainings/{self.metrics.plan_id}"
         logger.info(f"Sendig metrics to {url}", metrics=self.metrics)
         async with httpx.AsyncClient() as client:
-            print("=============HERE===============")
             metrics = {
                 "metric_type": self.metrics.metric_type,
                 "favourite_counter": self.metrics.favourite_counter,
@@ -49,7 +48,7 @@ async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
             "$group": {
                 "_id": None,
                 "mean": {"$avg": "$score"},
-                "count": {"$count": "reviews"},
+                "count": "$count",
             }
         },
     ]
