@@ -56,7 +56,7 @@ async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
     reviews_counter = 0
     review_average = 0.0
     async for review in reviews_cursor:
-        reviews_counter = review["count"]["reviews"]
+        reviews_counter = review["count"]
         review_average = review["mean"]
 
     plan = await db[TRAININGS_COLLECTION_NAME].find_one({"_id": plan_id})
