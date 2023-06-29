@@ -36,10 +36,7 @@ class MetricsService:
             }
             logger.info(f"sendig metrics to {url}", metrics=metrics)
             r = await client.put(url, json=jsonable_encoder(metrics))
-            if (
-                r.status_code is not HTTP_200_OK
-                or r.status_code is not HTTP_201_CREATED
-            ):
+            if r.status_code not in [HTTP_200_OK, HTTP_201_CREATED]:
                 logger.info("failed to send metrics", status_code=r.status_code)
 
 
