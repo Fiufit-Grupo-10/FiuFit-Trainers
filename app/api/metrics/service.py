@@ -23,7 +23,7 @@ class MetricsService:
         self.metrics = metrics
 
     async def send(self):
-        url = f"{METRICS_URL}/metrics/trainings/{self.metrics.plan_id}"
+        url = f"{METRICS_URL}metrics/trainings/{self.metrics.plan_id}"
         logger.info(f"Sendig metrics to {url}", metrics=self.metrics)
         async with httpx.AsyncClient() as client:
             r = await client.put(url, json=jsonable_encoder(self.metrics))
