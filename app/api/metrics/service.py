@@ -60,7 +60,7 @@ async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
         reviews_counter = review["count"]["reviews"]
         review_average = review["mean"]
 
-    plan = await db.mongodb[TRAININGS_COLLECTION_NAME].find_one({"_id": plan_id})
+    plan = await db[TRAININGS_COLLECTION_NAME].find_one({"_id": plan_id})
     if plan is None:
         logger.info("plan is none")
         return None

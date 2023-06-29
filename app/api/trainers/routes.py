@@ -100,7 +100,7 @@ async def add_favourite(user_id: str, favourite: UpdateFavourite, request: Reque
             status_code=HTTP_404_NOT_FOUND,
             detail=f"Training plan {favourite.training_id} not found",
         )
-    logger.info("Added favourite", user=user_id, plan=favourite.training_id)
+    logger.info("added favourite", user=user_id, plan=favourite.training_id)
     if config.METRICS_URL is not None:
         metrics = await get_metrics(request, favourite.training_id)
         if metrics is not None:
