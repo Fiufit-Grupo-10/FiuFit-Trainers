@@ -48,7 +48,7 @@ async def get_metrics(r: Request, plan_id: str) -> Metrics | None:
             "$group": {
                 "_id": None,
                 "mean": {"$avg": "$score"},
-                "count": "$count",
+                "count": {"$sum": 1},
             }
         },
     ]
