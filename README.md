@@ -28,5 +28,5 @@ sudo docker-compose -f docker-compose-testing.yml exec <command>
 To run tests
 
 ```bash
-docker-compose -f docker-compose-testing.yml run --rm tests
+docker-compose -f docker-compose-testing.yml run --rm pytest
 ```
