@@ -32,14 +32,14 @@ async def create_review(review: Review, request: Request):
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=created_review)
 
 
-@router.put("/reviews/{review_id}", response_model=UpdateReview)
+@router.put("/reviews/{review_id}", response_model=Review)
 async def update_review(review_id: str, review: UpdateReview, request: Request):
     response = await crud.update_review(request, review, review_id)
     logger.info("updating review", review=review_id)
     if response is not None:
         logger.info("review updated", review=review_id)
         if config.METRICS_URL is not None:
-            metrics = await get_metrics(request, update_review.plan_id)
+            metrics = await get_metrics(request, response.plan_id)
             if metrics is not None:
                 await MetricsService(metrics).send()
         return response
