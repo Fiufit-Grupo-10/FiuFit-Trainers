@@ -57,7 +57,7 @@ async def get_average_score(r: Request, plan_id: str) -> ReviewAverageScoreRespo
 
 async def update_review(
     r: Request, review: UpdateReview, review_id: str
-) -> Review | None:
+) -> dict | None:
     db = r.app.mongodb
     updated_review = {k: v for k, v in review.dict().items() if v is not None}
 

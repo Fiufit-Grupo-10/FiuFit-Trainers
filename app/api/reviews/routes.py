@@ -39,7 +39,7 @@ async def update_review(review_id: str, review: UpdateReview, request: Request):
     if response is not None:
         logger.info("review updated", review=review_id)
         if config.METRICS_URL is not None:
-            metrics = await get_metrics(request, response.plan_id)
+            metrics = await get_metrics(request, response["plan_id"])
             if metrics is not None:
                 await MetricsService(metrics).send()
         return response
