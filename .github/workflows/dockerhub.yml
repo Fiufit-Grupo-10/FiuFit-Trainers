@@ -37,10 +37,6 @@ jobs:
     steps:      
       - name: checkout
         uses: actions/checkout@v3
-
-      - uses: okteto/context@latest
-        with:
-          token: ${{ secrets.OKTETO_TOKEN }}
      
       - name: Rollout deployment
         env:
